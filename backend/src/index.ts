@@ -29,6 +29,7 @@ fastify.register(cors, {
     "http://localhost:4040", // фронтенд в Docker
     "http://localhost:4042", // админка в Docker
     "https://ab710ea9a264.ngrok-free.app", // новый ngrok URL
+    "https://splitify.vadimsemenko.ru",
   ],
   credentials: true,
 });

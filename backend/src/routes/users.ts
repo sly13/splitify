@@ -7,7 +7,7 @@ export async function usersRoutes(fastify: FastifyInstance) {
   fastify.post("/api/user/init", async (request, reply) => {
     try {
       const testMode = request.headers["x-test-mode"] === "true";
-      
+
       if (testMode) {
         // В тестовом режиме создаем тестового пользователя
         const testUser = await prisma.user.upsert({
@@ -35,8 +35,8 @@ export async function usersRoutes(fastify: FastifyInstance) {
         });
       } else {
         // В продакшн режиме используем authMiddleware
-        return reply.status(400).send({ 
-          error: "Используйте /api/me для инициализации пользователя" 
+        return reply.status(400).send({
+          error: "Используйте /api/me для инициализации пользователя",
         });
       }
     } catch (error) {

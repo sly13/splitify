@@ -11,6 +11,17 @@ const isTestMode = (): boolean => {
 // Базовый URL API (будет настроен в зависимости от окружения)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+console.log("🔧 API Configuration:", {
+  API_BASE_URL,
+  NODE_ENV: import.meta.env.NODE_ENV,
+  DEV: import.meta.env.DEV,
+  PROD: import.meta.env.PROD,
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  VITE_TEST_MODE: import.meta.env.VITE_TEST_MODE,
+  location: window.location.href,
+  origin: window.location.origin,
+});
+
 // Создание экземпляра Axios
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -27,10 +38,21 @@ api.interceptors.request.use(
     const tg = window.Telegram?.WebApp;
     const testMode = isTestMode();
     console.log(
+      "🌐 API Request:",
+      config.method?.toUpperCase(),
+      config.url,
+      "Base URL:",
+      config.baseURL,
+      "Full URL:",
+      `${config.baseURL}${config.url}`
+    );
+    console.log(
       "API Interceptor - Test mode:",
       testMode,
       "VITE_TEST_MODE:",
-      import.meta.env.VITE_TEST_MODE
+      import.meta.env.VITE_TEST_MODE,
+      "Has Telegram WebApp:",
+      !!tg
     );
 
     // Всегда добавляем заголовок тестового режима
@@ -64,13 +86,17 @@ api.interceptors.request.use(
 // Интерсептор для обработки ответов
 api.interceptors.response.use(
   (response: AxiosResponse) => {
+    console.log("✅ API Response:", response.status, response.config.url);
     return response;
   },
   error => {
+    console.error("❌ API Error:", error);
+
     // Обработка ошибок
     if (error.response) {
       // Сервер ответил с кодом ошибки
       const { status, data } = error.response;
+      console.error("Server responded with error:", status, data);
 
       switch (status) {
         case 401:
@@ -94,7 +120,8 @@ api.interceptors.response.use(
       }
     } else if (error.request) {
       // Запрос был отправлен, но ответ не получен
-      console.error("Network error:", error.message);
+      console.error("Network error - no response received:", error.message);
+      console.error("Request config:", error.config);
     } else {
       // Что-то пошло не так при настройке запроса
       console.error("Request setup error:", error.message);
@@ -324,6 +351,49 @@ export const analyticsApi = {
     );
     return api.get(`/analytics/debts/${friendId}`);
   },
+};
+
+// Функция для тестирования подключения к API
+export const testApiConnection = async (): Promise<boolean> => {
+  try {
+    const healthUrl = `${API_BASE_URL}/health`;
+    console.log("🧪 Testing API connection to:", healthUrl);
+    
+    const response = await fetch(healthUrl, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("🔍 Health check response:", {
+      status: response.status,
+      statusText: response.statusText,
+      ok: response.ok,
+      url: response.url
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      console.log("✅ API connection successful, data:", data);
+      return true;
+    } else {
+      console.error(
+        "❌ API connection failed:",
+        response.status,
+        response.statusText
+      );
+      return false;
+    }
+  } catch (error: any) {
+    console.error("❌ API connection error:", error);
+    console.error("Error details:", {
+      name: error?.name,
+      message: error?.message,
+      stack: error?.stack
+    });
+    return false;
+  }
 };
 
 export default api;

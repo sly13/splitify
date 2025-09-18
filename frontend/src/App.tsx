@@ -45,11 +45,31 @@ const AuthInitializer: FC = () => {
 
   useEffect(() => {
     if (isReady && !isAuthenticated && !isLoading) {
+      // В продакшене не ждем Telegram WebApp
+      const isProduction = !import.meta.env.DEV;
+      const hasTelegramWebApp = window.Telegram?.WebApp;
+
+      if (isProduction && !hasTelegramWebApp) {
+        console.log(
+          "🚀 Production mode without Telegram WebApp - skipping authentication"
+        );
+        // В продакшене без Telegram WebApp пропускаем аутентификацию
+        return;
+      }
+
       authenticate().catch(error => {
         console.error("Failed to authenticate:", error);
       });
     }
   }, [isReady, isAuthenticated, isLoading, authenticate]);
+
+  // В продакшене без Telegram WebApp не показываем загрузку
+  const isProduction = !import.meta.env.DEV;
+  const hasTelegramWebApp = window.Telegram?.WebApp;
+
+  if (isProduction && !hasTelegramWebApp) {
+    return <AppContent />;
+  }
 
   if (!isReady || isLoading) {
     return (
