@@ -20,7 +20,7 @@ export const useTelegram = () => {
       tg.expand();
 
       // Дополнительный полноэкранный режим для мобильных платформ
-      if (tg.platform === 'android' || tg.platform === 'ios') {
+      if (tg.platform === "android" || tg.platform === "ios") {
         if (tg.requestFullscreen) {
           tg.requestFullscreen();
         }
