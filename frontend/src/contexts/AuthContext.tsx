@@ -25,13 +25,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<any | null>(null);
 
   const authenticate = async () => {
-    if (isAuthenticated || isLoading) return;
+    if (isAuthenticated || isLoading) {
+      console.log(
+        "🔐 Authentication skipped - already authenticated or loading"
+      );
+      return;
+    }
 
+    console.log("🔐 Starting authentication process...");
     setIsLoading(true);
     try {
       console.log("🔐 Authenticating user...");
 
       // Сначала тестируем подключение к API
+      console.log("🧪 Testing API connection...");
       const apiAvailable = await testApiConnection();
       if (!apiAvailable) {
         console.error("❌ API is not available");
@@ -39,6 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return;
       }
 
+      console.log("✅ API is available, proceeding with authentication...");
       // Вызываем аутентификацию (создает пользователя если не существует)
       const response = await userApi.getMe();
 
@@ -57,6 +65,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.log("⚠️ Continuing without authentication in production");
       setIsAuthenticated(true);
     } finally {
+      console.log("🔐 Authentication process completed");
       setIsLoading(false);
     }
   };

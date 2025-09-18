@@ -356,9 +356,11 @@ export const analyticsApi = {
 // Функция для тестирования подключения к API
 export const testApiConnection = async (): Promise<boolean> => {
   try {
-    const healthUrl = `${API_BASE_URL}/health`;
+    // Убираем /api из URL для health check, так как он находится в корне
+    const baseUrl = API_BASE_URL.replace("/api", "");
+    const healthUrl = `${baseUrl}/health`;
     console.log("🧪 Testing API connection to:", healthUrl);
-    
+
     const response = await fetch(healthUrl, {
       method: "GET",
       headers: {
@@ -370,7 +372,7 @@ export const testApiConnection = async (): Promise<boolean> => {
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
-      url: response.url
+      url: response.url,
     });
 
     if (response.ok) {
@@ -390,7 +392,7 @@ export const testApiConnection = async (): Promise<boolean> => {
     console.error("Error details:", {
       name: error?.name,
       message: error?.message,
-      stack: error?.stack
+      stack: error?.stack,
     });
     return false;
   }
