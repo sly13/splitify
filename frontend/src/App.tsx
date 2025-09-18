@@ -4,7 +4,6 @@ import {
   Routes,
   Route,
   useNavigate,
-  useLocation,
 } from "react-router-dom";
 import { useTelegram } from "./hooks/useTelegram";
 import { useAppStore } from "./stores/appStore";
@@ -21,13 +20,13 @@ import "./App.css";
 // Компонент для обработки параметра startapp
 const StartAppHandler: FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
   const { webApp } = useTelegram();
 
   useEffect(() => {
     // Проверяем параметр startapp из Telegram WebApp
-    if (webApp?.initDataUnsafe?.start_param) {
-      const billId = webApp.initDataUnsafe.start_param;
+    const startParam = (webApp?.initDataUnsafe as any)?.start_param;
+    if (startParam) {
+      const billId = startParam;
       console.log("StartApp parameter found:", billId);
 
       // Перенаправляем на страницу счета

@@ -63,10 +63,8 @@ const AnalyticsPage: React.FC = () => {
 
   // Подсчитываем статистику
   const totalBills = bills.length;
-  const completedBills = bills.filter(
-    bill => bill.status === "completed"
-  ).length;
-  const activeBills = bills.filter(bill => bill.status === "active").length;
+  const completedBills = bills.filter(bill => bill.status === "closed").length;
+  const activeBills = bills.filter(bill => bill.status === "open").length;
 
   const totalAmount = bills.reduce((sum, bill) => sum + bill.totalAmount, 0);
   const paidAmount = bills.reduce((sum, bill) => {

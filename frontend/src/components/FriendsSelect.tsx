@@ -47,7 +47,7 @@ export const FriendsSelect: React.FC<FriendsSelectProps> = ({
 
           const response = await friendsApi.getFriends();
           setFriends(response.data.friends || []);
-        } catch (error) {
+        } catch (error: any) {
           console.error("❌ FriendsSelect: Ошибка загрузки друзей:", error);
           console.error(
             "❌ FriendsSelect: Детали ошибки:",

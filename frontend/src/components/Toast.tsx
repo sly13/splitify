@@ -32,7 +32,7 @@ export const Toast: React.FC<ToastProps> = ({
   }, [duration, onClose]);
 
   const getToastStyles = () => {
-    const baseStyles = {
+    const baseStyles: React.CSSProperties = {
       position: "fixed",
       top: "16px",
       right: "16px",

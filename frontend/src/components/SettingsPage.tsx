@@ -7,7 +7,7 @@ import CustomSelect from "./CustomSelect";
 const SettingsPage: React.FC = () => {
   const { webApp } = useTelegram();
   const { setTheme } = useAppStore();
-  const { isDark, isLight, isAuto } = useTheme();
+  const { isDark, isLight } = useTheme();
 
   const [settings, setSettings] = useState({
     language: "ru",
@@ -21,8 +21,8 @@ const SettingsPage: React.FC = () => {
     }));
   };
 
-  const handleThemeChange = (newTheme: "light" | "dark" | "auto") => {
-    setTheme(newTheme);
+  const handleThemeChange = (value: string) => {
+    setTheme(value as "light" | "dark" | "auto");
   };
 
   const handleClearData = () => {

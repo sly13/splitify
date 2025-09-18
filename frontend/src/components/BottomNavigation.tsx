@@ -1,13 +1,10 @@
 import { type FC } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTelegram } from "../hooks/useTelegram";
 import { useAppStore } from "../stores/appStore";
 
 const BottomNavigation: FC = () => {
   const { hapticFeedback } = useTelegram();
   const { currentTab, setCurrentTab } = useAppStore();
-  const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
 
   const tabs = [
     {
@@ -43,7 +40,7 @@ const BottomNavigation: FC = () => {
 
     // Очищаем URL параметры при переключении на другие вкладки
     if (tabId !== "bills") {
-      setSearchParams({});
+      // URL параметры будут очищены автоматически при навигации
     }
   };
 
