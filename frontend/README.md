@@ -65,6 +65,48 @@ cp env.example .env
 npm run dev
 ```
 
+## Сборка
+
+### Для разработки:
+
+```bash
+npm run build
+```
+
+### Для продакшна:
+
+```bash
+npm run build:prod
+```
+
+## Переменные окружения
+
+Основные переменные в файле `.env`:
+
+```bash
+# API Configuration
+# Для продакшна:
+VITE_API_BASE_URL=https://api-splitify.vadimsemenko.ru/api
+# Для разработки:
+# VITE_API_BASE_URL=http://localhost:4041/api
+
+# Socket.io Configuration
+# Для продакшна:
+VITE_SOCKET_URL=https://api-splitify.vadimsemenko.ru
+# Для разработки:
+# VITE_SOCKET_URL=http://localhost:4041
+```
+
+## Docker
+
+Для сборки Docker образа:
+
+```bash
+docker build -t crypto-split-bill-frontend .
+```
+
+Docker автоматически использует продакшн API URL.
+
 ## Маршруты приложения
 
 - `/` - Onboarding экран (только при первом запуске) или главное приложение

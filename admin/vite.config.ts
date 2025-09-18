@@ -7,4 +7,16 @@ export default defineConfig({
     port: 3002,
     host: true,
   },
+  build: {
+    outDir: "dist",
+    sourcemap: false,
+  },
+  define: {
+    // Устанавливаем продакшн API URL по умолчанию
+    "import.meta.env.VITE_API_URL": JSON.stringify(
+      process.env.NODE_ENV === "production"
+        ? "https://api-splitify.vadimsemenko.ru"
+        : "http://localhost:4041"
+    ),
+  },
 });

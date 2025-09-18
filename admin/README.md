@@ -34,10 +34,43 @@ npm run dev
 
 ## API
 
-Админка работает с бэкендом на порту 3001. Убедитесь, что бэкенд запущен.
+Админка работает с бэкендом. По умолчанию:
+
+- **Разработка:** http://localhost:4041
+- **Продакшн:** https://api-splitify.vadimsemenko.ru
 
 ## Сборка
+
+### Для разработки:
 
 ```bash
 npm run build
 ```
+
+### Для продакшна:
+
+```bash
+npm run build:prod
+```
+
+## Переменные окружения
+
+Создайте файл `.env` в корне проекта:
+
+```bash
+# Для продакшна
+VITE_API_URL=https://api-splitify.vadimsemenko.ru
+
+# Для разработки
+VITE_API_URL=http://localhost:4041
+```
+
+## Docker
+
+Для сборки Docker образа:
+
+```bash
+docker build -t crypto-split-bill-admin .
+```
+
+Docker автоматически использует продакшн API URL.

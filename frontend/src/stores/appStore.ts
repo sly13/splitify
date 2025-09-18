@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-export type TabType = "home" | "create" | "analytics" | "profile" | "friends";
+export type TabType = "bills" | "friends" | "analytics" | "profile" | "settings";
 export type ThemeType = "light" | "dark" | "auto";
 
 interface AppState {
@@ -16,7 +16,7 @@ interface AppState {
 export const useAppStore = create<AppState>()(
   persist(
     (set) => ({
-      currentTab: "home",
+      currentTab: "bills",
       hasSeenOnboarding: false,
       theme: "auto",
       setCurrentTab: (tab) => set({ currentTab: tab }),
