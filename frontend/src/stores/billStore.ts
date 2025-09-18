@@ -17,10 +17,13 @@ interface BillState {
   setError: (error: string | null) => void;
 
   // Async actions (will be implemented with API calls)
-  createBill: (request: CreateBillRequest) => Promise<void>;
+  createBill: (
+    request: CreateBillRequest
+  ) => Promise<{ id: string; shareUrl: string }>;
   joinBill: (request: JoinBillRequest) => Promise<void>;
   fetchBills: () => Promise<void>;
   fetchBill: (billId: string) => Promise<void>;
+  deleteBill: (billId: string) => Promise<void>;
 }
 
 export const useBillStore = create<BillState>(set => ({
@@ -61,7 +64,11 @@ export const useBillStore = create<BillState>(set => ({
         currentBill: newBill,
       }));
 
-      return newBill;
+      // Возвращаем данные для навигации
+      return {
+        id: newBill.id,
+        shareUrl: newBill.shareUrl || "",
+      };
     } catch (error) {
       set({
         isLoading: false,
@@ -118,6 +125,26 @@ export const useBillStore = create<BillState>(set => ({
         isLoading: false,
         error: error instanceof Error ? error.message : "Failed to fetch bill",
       });
+    }
+  },
+
+  deleteBill: async (billId: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      await billApi.deleteBill(billId);
+
+      set(state => ({
+        isLoading: false,
+        bills: state.bills.filter(bill => bill.id !== billId),
+        currentBill:
+          state.currentBill?.id === billId ? null : state.currentBill,
+      }));
+    } catch (error) {
+      set({
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to delete bill",
+      });
+      throw error;
     }
   },
 }));

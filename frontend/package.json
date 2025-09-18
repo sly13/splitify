@@ -11,6 +11,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tonconnect/sdk": "^3.3.0",
+    "@tonconnect/ui-react": "^2.3.0",
     "@twa-dev/sdk": "^8.0.2",
     "@types/node": "^24.5.2",
     "@types/qrcode": "^1.5.5",

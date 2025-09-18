@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTelegram } from "../hooks/useTelegram";
+import { friendsApi } from "../services/api";
 
 interface Contact {
   id: string;
@@ -27,18 +28,8 @@ export const ContactSelector: React.FC<ContactSelectorProps> = ({
   useEffect(() => {
     const loadFriends = async () => {
       try {
-        const API_BASE_URL =
-          import.meta.env.VITE_API_BASE_URL || "http://localhost:4041/api";
-        const response = await fetch(`${API_BASE_URL}/friends`, {
-          headers: {
-            "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-          },
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          setContacts(data.friends || []);
-        }
+        const response = await friendsApi.getFriends();
+        setContacts(response.data.friends || []);
       } catch (error) {
         console.error("Ошибка загрузки друзей:", error);
       }

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useTelegram } from "../hooks/useTelegram";
 import { useAppStore } from "../stores/appStore";
 import { useTheme } from "../hooks/useTheme";
+import CustomSelect from "./CustomSelect";
 
 const SettingsPage: React.FC = () => {
   const { webApp } = useTelegram();
@@ -11,8 +12,6 @@ const SettingsPage: React.FC = () => {
   const [settings, setSettings] = useState({
     language: "ru",
     defaultCurrency: "USDT",
-    notifications: true,
-    hapticFeedback: true,
   });
 
   const handleSettingChange = (key: string, value: string | boolean) => {
@@ -45,87 +44,42 @@ const SettingsPage: React.FC = () => {
 
         <div className="setting-group">
           <label htmlFor="language">Язык</label>
-          <select
-            id="language"
+          <CustomSelect
+            options={[
+              { value: "ru", label: "Русский", icon: "🇷🇺" },
+              { value: "en", label: "English", icon: "🇺🇸" },
+            ]}
             value={settings.language}
-            onChange={e => handleSettingChange("language", e.target.value)}
-          >
-            <option value="ru">Русский</option>
-            <option value="en">English</option>
-          </select>
+            onChange={value => handleSettingChange("language", value)}
+            placeholder="Выберите язык"
+          />
         </div>
 
         <div className="setting-group">
           <label htmlFor="currency">Валюта по умолчанию</label>
-          <select
-            id="currency"
+          <CustomSelect
+            options={[
+              { value: "USDT", label: "USDT", icon: "💵" },
+              { value: "TON", label: "TON", icon: "💎" },
+            ]}
             value={settings.defaultCurrency}
-            onChange={e =>
-              handleSettingChange("defaultCurrency", e.target.value)
-            }
-          >
-            <option value="USDT">USDT</option>
-            <option value="TON">TON</option>
-          </select>
+            onChange={value => handleSettingChange("defaultCurrency", value)}
+            placeholder="Выберите валюту"
+          />
         </div>
 
         <div className="setting-group">
           <label htmlFor="theme">Тема</label>
-          <div className="theme-selector">
-            <button
-              className={`theme-option ${isLight ? "active" : ""}`}
-              onClick={() => handleThemeChange("light")}
-            >
-              <span className="theme-icon">☀️</span>
-              <span className="theme-label">Светлая</span>
-            </button>
-            <button
-              className={`theme-option ${isDark ? "active" : ""}`}
-              onClick={() => handleThemeChange("dark")}
-            >
-              <span className="theme-icon">🌙</span>
-              <span className="theme-label">Тёмная</span>
-            </button>
-            <button
-              className={`theme-option ${isAuto ? "active" : ""}`}
-              onClick={() => handleThemeChange("auto")}
-            >
-              <span className="theme-icon">🔄</span>
-              <span className="theme-label">Авто</span>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className="settings-section">
-        <h3>Уведомления</h3>
-
-        <div className="setting-group">
-          <label className="switch-label">
-            <input
-              type="checkbox"
-              checked={settings.notifications}
-              onChange={e =>
-                handleSettingChange("notifications", e.target.checked)
-              }
-            />
-            <span className="switch-slider"></span>
-            Push уведомления
-          </label>
-        </div>
-
-        <div className="setting-group">
-          <label className="switch-label">
-            <input
-              type="checkbox"
-              checked={settings.hapticFeedback}
-              onChange={e =>
-                handleSettingChange("hapticFeedback", e.target.checked)
-              }
-            />
-            <span className="switch-slider"></span>
-            Тактильная обратная связь
-          </label>
+          <CustomSelect
+            options={[
+              { value: "light", label: "Светлая", icon: "☀️" },
+              { value: "dark", label: "Тёмная", icon: "🌙" },
+              { value: "auto", label: "Авто", icon: "🔄" },
+            ]}
+            value={isLight ? "light" : isDark ? "dark" : "auto"}
+            onChange={handleThemeChange}
+            placeholder="Выберите тему"
+          />
         </div>
       </div>
 

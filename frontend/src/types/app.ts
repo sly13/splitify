@@ -4,6 +4,7 @@ export interface User {
   lastName?: string;
   username?: string;
   photoUrl?: string;
+  tonWalletAddress?: string; // Адрес кошелька TON
 }
 
 export interface Bill {
@@ -14,19 +15,26 @@ export interface Bill {
   currency: string;
   createdAt: string;
   updatedAt: string;
-  createdBy: User;
+  creator: User; // Создатель счета
   status: BillStatus;
   participants: Participant[];
-  payments: Payment[];
+  payments?: Payment[];
+  shareUrl?: string; // Ссылка для присоединения к счету
 }
 
 export interface Participant {
   id: string;
-  user: User;
-  amount: number;
-  currency: string;
-  status: ParticipantStatus;
-  joinedAt: string;
+  user: User | null; // Может быть null для незарегистрированных пользователей
+  name: string; // Имя участника
+  telegramUsername?: string; // Username в Telegram
+  telegramUserId?: string; // ID в Telegram
+  amount?: number; // Устаревшее поле, используйте shareAmount
+  shareAmount?: string; // Сумма доли участника
+  currency?: string; // Валюта (может отсутствовать в API ответе)
+  status?: ParticipantStatus; // Устаревшее поле, используйте paymentStatus
+  paymentStatus?: string; // Статус платежа: "pending", "paid", "failed"
+  joinedAt?: string; // Дата присоединения
+  isPayer?: boolean; // отметка кто заплатил за весь счёт
 }
 
 export interface Payment {
@@ -41,9 +49,8 @@ export interface Payment {
 }
 
 export const BillStatus = {
-  ACTIVE: "active",
-  COMPLETED: "completed",
-  CANCELLED: "cancelled",
+  OPEN: "open",
+  CLOSED: "closed",
 } as const;
 
 export type BillStatus = (typeof BillStatus)[keyof typeof BillStatus];
@@ -73,6 +80,7 @@ export interface CreateBillRequest {
   currency: string;
   participants: ParticipantData[];
   splitType: "equal" | "custom";
+  creatorWalletAddress?: string;
 }
 
 export interface ParticipantData {
@@ -81,6 +89,7 @@ export interface ParticipantData {
   telegramUsername?: string;
   amount: number;
   percentage?: number;
+  isPayer?: boolean;
 }
 
 export interface JoinBillRequest {

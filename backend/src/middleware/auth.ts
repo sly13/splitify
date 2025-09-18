@@ -18,19 +18,51 @@ export async function authMiddleware(
 ) {
   try {
     const initData = request.headers["x-telegram-init-data"] as string;
-    const testMode = process.env.TEST_MODE === "true";
+    const testModeHeader = request.headers["x-test-mode"] as string;
+    const isTestMode = testModeHeader === "true";
 
-    console.log("Auth middleware - Test mode:", testMode);
+    console.log("Auth middleware - Test mode header:", testModeHeader);
     console.log("Auth middleware - URL:", request.url);
     console.log("Auth middleware - initData:", initData);
 
-    // В тестовом режиме пропускаем аутентификацию для тестовых эндпоинтов
-    if (
-      testMode &&
-      (request.url.includes("/test") || request.url.includes("/api/bills/test"))
-    ) {
-      console.log("Auth middleware - Skipping auth for test endpoint");
-      return; // Пропускаем аутентификацию
+    // Если фронтенд указал тестовый режим, используем тестового пользователя
+    if (isTestMode) {
+      console.log("Auth middleware - Using test user from database");
+
+      // Найти тестового пользователя в базе данных
+      let testUser = await prisma.user.findFirst({
+        where: {
+          OR: [
+            { username: "test" },
+            { telegramUserId: "123456789" },
+            { firstName: "Тест" },
+          ],
+        },
+      });
+
+      if (!testUser) {
+        // Если тестового пользователя нет, создаем его
+        testUser = await prisma.user.create({
+          data: {
+            telegramUserId: "123456789",
+            username: "test",
+            firstName: "Тест",
+          },
+        });
+        console.log("Auth middleware - Created test user:", testUser.id);
+      } else {
+        console.log("Auth middleware - Found test user:", testUser.id);
+      }
+
+      // Автоматически привязываем счета к тестовому пользователю
+      await linkUserToBills(
+        testUser.id,
+        testUser.telegramUserId,
+        testUser.username
+      );
+
+      request.user = testUser as AuthenticatedUser;
+      return; // Завершаем middleware с тестовым пользователем
     }
 
     if (!initData) {

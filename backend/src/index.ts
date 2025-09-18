@@ -5,10 +5,11 @@ import { adminAuthMiddleware } from "./middleware/adminAuth";
 import { billsRoutes } from "./routes/bills";
 import { paymentsRoutes } from "./routes/payments";
 import { friendsRoutes } from "./routes/friends";
+import { usersRoutes } from "./routes/users";
+import { analyticsRoutes } from "./routes/analytics";
 import { adminAuthRoutes } from "./routes/admin/auth";
 import { adminDataRoutes } from "./routes/admin/data";
 import { adminFriendsRoutes } from "./routes/admin/friends";
-import { testRoutes } from "./routes/test";
 import { setupWebSocket } from "./websocket";
 
 const fastify = Fastify({
@@ -27,6 +28,7 @@ fastify.register(cors, {
     process.env.FRONTEND_URL || "http://localhost:3000",
     "http://localhost:4040", // фронтенд в Docker
     "http://localhost:4042", // админка в Docker
+    "https://ab710ea9a264.ngrok-free.app", // новый ngrok URL
   ],
   credentials: true,
 });
@@ -38,10 +40,11 @@ fastify.register(setupWebSocket);
 fastify.register(billsRoutes);
 fastify.register(paymentsRoutes);
 fastify.register(friendsRoutes);
+fastify.register(usersRoutes);
+fastify.register(analyticsRoutes);
 fastify.register(adminAuthRoutes);
 fastify.register(adminDataRoutes);
 fastify.register(adminFriendsRoutes);
-fastify.register(testRoutes);
 
 // Базовый маршрут для проверки здоровья
 fastify.get("/health", async (request, reply) => {

@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../config/database";
 import { z } from "zod";
+import { authMiddleware } from "../middleware/auth";
 
 // Схемы валидации
 const CreateFriendSchema = z.object({
@@ -18,7 +19,7 @@ export async function friendsRoutes(fastify: FastifyInstance) {
   fastify.get(
     "/api/friends",
     {
-      preHandler: [fastify.authMiddleware],
+      preHandler: [authMiddleware],
     },
     async (request, reply) => {
       try {
@@ -41,7 +42,7 @@ export async function friendsRoutes(fastify: FastifyInstance) {
   fastify.post(
     "/api/friends",
     {
-      preHandler: [fastify.authMiddleware],
+      preHandler: [authMiddleware],
       schema: {
         body: {
           type: "object",
@@ -97,7 +98,7 @@ export async function friendsRoutes(fastify: FastifyInstance) {
   fastify.put(
     "/api/friends/:id",
     {
-      preHandler: [fastify.authMiddleware],
+      preHandler: [authMiddleware],
       schema: {
         body: {
           type: "object",
@@ -166,7 +167,7 @@ export async function friendsRoutes(fastify: FastifyInstance) {
   fastify.delete(
     "/api/friends/:id",
     {
-      preHandler: [fastify.authMiddleware],
+      preHandler: [authMiddleware],
     },
     async (request, reply) => {
       try {
@@ -185,6 +186,48 @@ export async function friendsRoutes(fastify: FastifyInstance) {
           return reply.status(404).send({ error: "Друг не найден" });
         }
 
+        // Проверяем, есть ли счета с этим другом
+        const billsWithFriend = await prisma.bill.findMany({
+          where: {
+            creatorId: userId,
+            participants: {
+              some: {
+                OR: [
+                  // Проверяем по имени друга
+                  { name: existingFriend.name },
+                  // Проверяем по telegram username если есть
+                  ...(existingFriend.telegramUsername
+                    ? [{ telegramUsername: existingFriend.telegramUsername }]
+                    : []),
+                ],
+              },
+            },
+          },
+          select: {
+            id: true,
+            title: true,
+            status: true,
+          },
+        });
+
+        // Если есть активные счета с этим другом, не позволяем удалить
+        if (billsWithFriend.length > 0) {
+          const activeBills = billsWithFriend.filter(
+            bill => bill.status === "open"
+          );
+
+          if (activeBills.length > 0) {
+            return reply.status(400).send({
+              error: "Нельзя удалить друга",
+              message: `У вас есть активные счета с ${
+                existingFriend.name
+              }: ${activeBills.map(bill => bill.title).join(", ")}`,
+              billsCount: activeBills.length,
+              bills: activeBills,
+            });
+          }
+        }
+
         await prisma.friend.delete({
           where: { id },
         });
@@ -201,7 +244,7 @@ export async function friendsRoutes(fastify: FastifyInstance) {
   fastify.get(
     "/api/friends/search/:username",
     {
-      preHandler: [fastify.authMiddleware],
+      preHandler: [authMiddleware],
     },
     async (request, reply) => {
       try {
@@ -231,34 +274,4 @@ export async function friendsRoutes(fastify: FastifyInstance) {
       }
     }
   );
-
-  // Тестовый эндпоинт для получения друзей (без аутентификации)
-  fastify.get("/api/friends/test", async (request, reply) => {
-    try {
-      // В тестовом режиме возвращаем друзей тестового пользователя
-      const testUser = await prisma.user.findUnique({
-        where: {
-          telegramUserId: "123456789",
-        },
-      });
-
-      if (!testUser) {
-        return reply.status(404).send({ error: "Test user not found" });
-      }
-
-      const friends = await prisma.friend.findMany({
-        where: {
-          ownerId: testUser.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-      });
-
-      return reply.send({ friends });
-    } catch (error) {
-      console.error("Error fetching test friends:", error);
-      return reply.status(500).send({ error: "Failed to fetch test friends" });
-    }
-  });
 }

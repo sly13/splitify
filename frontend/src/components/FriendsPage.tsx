@@ -22,6 +22,10 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
     name: "",
     telegramUsername: "",
   });
+  const [deleteModal, setDeleteModal] = useState<{
+    friendId: string;
+    friendName: string;
+  } | null>(null);
   const { hapticFeedback, showAlert, showSuccess } = useTelegram();
 
   // Загружаем список друзей
@@ -51,59 +55,75 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
     }
 
     try {
-      const API_BASE_URL =
-        import.meta.env.VITE_API_BASE_URL || "http://localhost:4041/api";
-      const response = await fetch(`${API_BASE_URL}/friends`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-        },
-        body: JSON.stringify({
-          name: newFriend.name.trim(),
-          telegramUsername: newFriend.telegramUsername.replace("@", ""),
-        }),
+      const response = await friendsApi.addFriend({
+        name: newFriend.name.trim(),
+        telegramUsername: newFriend.telegramUsername.replace("@", ""),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        setFriends(prev => [data.friend, ...prev]);
-        setNewFriend({ name: "", telegramUsername: "" });
-        setShowAddForm(false);
-        hapticFeedback.notification("success");
-        showSuccess("Друг добавлен!");
-      } else {
-        const errorData = await response.json();
-        showAlert(errorData.error || "Ошибка добавления друга");
-      }
-    } catch (err) {
-      showAlert("Ошибка соединения");
+      setFriends(prev => [response.data.friend, ...prev]);
+      setNewFriend({ name: "", telegramUsername: "" });
+      setShowAddForm(false);
+      hapticFeedback.notification("success");
+      showSuccess("Друг добавлен!");
+    } catch (err: unknown) {
+      const errorMessage =
+        (err as { response?: { data?: { error?: string } } })?.response?.data
+          ?.error || "Ошибка добавления друга";
+      showAlert(errorMessage);
       console.error("Ошибка добавления друга:", err);
     }
   };
 
-  const handleDeleteFriend = async (friendId: string) => {
-    try {
-      const API_BASE_URL =
-        import.meta.env.VITE_API_BASE_URL || "http://localhost:4041/api";
-      const response = await fetch(`${API_BASE_URL}/friends/${friendId}`, {
-        method: "DELETE",
-        headers: {
-          "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-        },
-      });
+  const handleDeleteClick = (friendId: string, friendName: string) => {
+    hapticFeedback.impact("medium");
+    setDeleteModal({ friendId, friendName });
+  };
 
-      if (response.ok) {
-        setFriends(prev => prev.filter(friend => friend.id !== friendId));
-        hapticFeedback.notification("success");
-        showSuccess("Друг удален");
+  const handleConfirmDelete = async () => {
+    if (!deleteModal) return;
+
+    try {
+      await friendsApi.deleteFriend(deleteModal.friendId);
+      setFriends(prev =>
+        prev.filter(friend => friend.id !== deleteModal.friendId)
+      );
+      setDeleteModal(null);
+      hapticFeedback.notification("success");
+    } catch (err: unknown) {
+      const errorResponse = err as {
+        response?: {
+          data?: {
+            error?: string;
+            message?: string;
+            billsCount?: number;
+            bills?: Array<{ id: string; title: string; status: string }>;
+          };
+        };
+      };
+
+      const errorData = errorResponse?.response?.data;
+
+      if (errorData?.billsCount && errorData.billsCount > 0) {
+        // Показываем специальное сообщение о наличии активных счетов
+        const billsList =
+          errorData.bills?.map(bill => `"${bill.title}"`).join(", ") || "";
+        const message = `Нельзя удалить друга. У вас есть активные счета: ${billsList}`;
+        showAlert(message);
       } else {
-        showAlert("Ошибка удаления друга");
+        // Обычная ошибка
+        const errorMessage =
+          errorData?.error || errorData?.message || "Ошибка удаления друга";
+        showAlert(errorMessage);
       }
-    } catch (err) {
-      showAlert("Ошибка соединения");
+
+      setDeleteModal(null);
       console.error("Ошибка удаления друга:", err);
     }
+  };
+
+  const handleCancelDelete = () => {
+    hapticFeedback.impact("light");
+    setDeleteModal(null);
   };
 
   const formatDate = (dateString: string) => {
@@ -191,9 +211,6 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
           </div>
 
           <div className="form-actions">
-            <button onClick={handleAddFriend} className="primary-button">
-              Добавить
-            </button>
             <button
               onClick={() => {
                 setShowAddForm(false);
@@ -203,6 +220,9 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
             >
               Отмена
             </button>
+            <button onClick={handleAddFriend} className="primary-button">
+              Добавить
+            </button>
           </div>
         </div>
       )}
@@ -210,7 +230,7 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
       {/* Список друзей */}
       {friends.length > 0 ? (
         <div className="friends-section">
-          <h2>Мои друзья</h2>
+          <h2>Мои друзья ({friends.length})</h2>
           <div className="friends-list">
             {friends.map(friend => (
               <div key={friend.id} className="friend-card">
@@ -242,7 +262,7 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
                     </button>
                   )}
                   <button
-                    onClick={() => handleDeleteFriend(friend.id)}
+                    onClick={() => handleDeleteClick(friend.id, friend.name)}
                     className="delete-btn"
                   >
                     ✕
@@ -274,6 +294,41 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
             <div className="stat-content">
               <div className="stat-number">{friends.length}</div>
               <div className="stat-label">Всего друзей</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Модальное окно подтверждения удаления */}
+      {deleteModal && (
+        <div className="modal-overlay" onClick={handleCancelDelete}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Удалить друга?</h3>
+              <button className="close-button" onClick={handleCancelDelete}>
+                ✕
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>
+                Вы уверены, что хотите удалить{" "}
+                <strong>{deleteModal.friendName}</strong> из списка друзей?
+              </p>
+              <div className="warning-text">
+                ⚠️ Если у вас есть активные счета с этим другом, удаление будет
+                невозможно.
+              </div>
+              <div className="modal-actions">
+                <button
+                  onClick={handleCancelDelete}
+                  className="secondary-button"
+                >
+                  Отмена
+                </button>
+                <button onClick={handleConfirmDelete} className="danger-button">
+                  Удалить
+                </button>
+              </div>
             </div>
           </div>
         </div>

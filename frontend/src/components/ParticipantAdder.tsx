@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { ContactSelector } from "./ContactSelector";
 import { UsernameInput } from "./UsernameInput";
 import { useTelegram } from "../hooks/useTelegram";
+import FriendsSelect from "./FriendsSelect";
 
 interface Participant {
   id: string;
@@ -9,6 +9,13 @@ interface Participant {
   telegramUsername?: string;
   telegramUserId?: string;
   shareAmount: string;
+  isPayer?: boolean;
+}
+
+interface Friend {
+  id: string;
+  name: string;
+  telegramUsername?: string;
 }
 
 interface ParticipantAdderProps {
@@ -16,58 +23,154 @@ interface ParticipantAdderProps {
   onParticipantsChange: (participants: Participant[]) => void;
   totalAmount: number;
   splitType: "equal" | "custom";
+  onSplitTypeChange: (splitType: "equal" | "custom") => void;
+  currency: string;
+  friends?: Friend[]; // Передаем список друзей извне
+  payerError?: string; // Ошибка валидации плательщика
 }
+
+// Функция для равномерного распределения суммы - каждый получает одинаковую сумму, округленную в большую сторону
+const distributeAmountEqually = (
+  totalAmount: number,
+  participantCount: number
+): string[] => {
+  if (participantCount === 0) return [];
+
+  // Делим сумму поровну и округляем в большую сторону до сотых
+  const equalAmount = Math.ceil((totalAmount / participantCount) * 100) / 100;
+
+  // Все участники получают одинаковую сумму
+  return Array(participantCount).fill(equalAmount.toFixed(2));
+};
 
 export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
   participants,
   onParticipantsChange,
   totalAmount,
   splitType,
+  onSplitTypeChange,
+  currency,
+  friends = [],
+  payerError,
 }) => {
+  const { user } = useTelegram();
   const [newParticipant, setNewParticipant] = useState({
     name: "",
     telegramUsername: "",
     shareAmount: "",
   });
   const [showAddForm, setShowAddForm] = useState(false);
+
+  // Логирование для отладки
+  console.log("🔍 ParticipantAdder получил участников:", participants);
+  console.log("📊 Количество участников:", participants.length);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const { hapticFeedback } = useTelegram();
 
-  // Загружаем предложения из истории друзей
+  // Генерируем предложения из переданных друзей
   useEffect(() => {
-    const loadSuggestions = async () => {
-      try {
-        const API_BASE_URL =
-          import.meta.env.VITE_API_BASE_URL || "http://localhost:4041/api";
-        const response = await fetch(`${API_BASE_URL}/friends`, {
-          headers: {
-            "X-Telegram-Init-Data": window.Telegram?.WebApp?.initData || "",
-          },
-        });
+    const usernames =
+      friends
+        ?.filter((friend: Friend) => friend.telegramUsername)
+        .map((friend: Friend) => `@${friend.telegramUsername}`) || [];
+    setSuggestions(usernames);
+  }, [friends]);
 
-        if (response.ok) {
-          const data = await response.json();
-          const usernames =
-            data.friends
-              ?.filter((friend: any) => friend.telegramUsername)
-              .map((friend: any) => `@${friend.telegramUsername}`) || [];
-          setSuggestions(usernames);
-        }
-      } catch (error) {
-        console.error("Ошибка загрузки предложений:", error);
+  // Автоматически пересчитываем суммы при изменении типа разделения или общей суммы
+  useEffect(() => {
+    if (splitType === "equal" && participants.length > 0 && totalAmount > 0) {
+      const distributedAmounts = distributeAmountEqually(
+        totalAmount,
+        participants.length
+      );
+      const updatedParticipants = participants.map((p, index) => ({
+        ...p,
+        shareAmount: distributedAmounts[index],
+      }));
+
+      // Проверяем, изменились ли суммы, чтобы избежать бесконечного цикла
+      const hasChanges = updatedParticipants.some(
+        (p, index) => p.shareAmount !== participants[index].shareAmount
+      );
+
+      if (hasChanges) {
+        onParticipantsChange(updatedParticipants);
       }
+    }
+  }, [splitType, totalAmount, participants.length, onParticipantsChange]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Автоматически добавляем себя при первом рендере, если себя еще нет
+  useEffect(() => {
+    if (user && participants.length === 0) {
+      // Проверяем, есть ли уже себя в списке участников
+      const isSelfAlreadyAdded = participants.some(
+        p => p.telegramUserId === user.id.toString()
+      );
+
+      if (!isSelfAlreadyAdded) {
+        const selfParticipant: Participant = {
+          id: `self_${user.id}`,
+          name: `${user.first_name}${
+            user.last_name ? ` ${user.last_name}` : ""
+          }`,
+          telegramUsername: user.username || undefined,
+          telegramUserId: user.id.toString(),
+          shareAmount: "0",
+        };
+
+        const updatedParticipants = [selfParticipant];
+
+        // Если режим "равномерно" и есть общая сумма, рассчитываем долю
+        if (splitType === "equal" && totalAmount > 0) {
+          const equalShare = totalAmount / updatedParticipants.length;
+          updatedParticipants.forEach(p => {
+            p.shareAmount = equalShare.toFixed(2);
+          });
+        }
+
+        onParticipantsChange(updatedParticipants);
+      }
+    }
+  }, [user, participants, splitType, totalAmount, onParticipantsChange]);
+
+  const handleContactSelect = (contact: Friend) => {
+    // Проверяем, не добавлен ли уже этот участник
+    const isAlreadyAdded = participants.some(
+      p =>
+        p.telegramUsername === contact.telegramUsername ||
+        (user &&
+          p.telegramUserId === user.id.toString() &&
+          contact.telegramUsername === user.username)
+    );
+
+    if (isAlreadyAdded) {
+      hapticFeedback.notification("error");
+      return;
+    }
+
+    // Сразу добавляем участника без формы подтверждения
+    const participant: Participant = {
+      id: contact.id.startsWith("self_") ? contact.id : Date.now().toString(),
+      name: contact.name,
+      telegramUsername: contact.telegramUsername || undefined,
+      telegramUserId: contact.id.startsWith("self_")
+        ? user?.id.toString()
+        : undefined,
+      shareAmount: "0",
     };
 
-    loadSuggestions();
-  }, []);
+    const updatedParticipants = [...participants, participant];
 
-  const handleContactSelect = (contact: any) => {
-    setNewParticipant({
-      name: contact.name,
-      telegramUsername: contact.telegramUsername || "",
-      shareAmount: "",
-    });
-    setShowAddForm(true);
+    // Если тип разделения "равномерно", пересчитываем суммы
+    if (splitType === "equal") {
+      const equalShare = totalAmount / updatedParticipants.length;
+      updatedParticipants.forEach(p => {
+        p.shareAmount = equalShare.toFixed(2);
+      });
+    }
+
+    onParticipantsChange(updatedParticipants);
+    hapticFeedback.notification("success");
   };
 
   const handleAddParticipant = () => {
@@ -79,7 +182,9 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
     const participant: Participant = {
       id: Date.now().toString(),
       name: newParticipant.name.trim(),
-      telegramUsername: newParticipant.telegramUsername.replace("@", ""),
+      telegramUsername: newParticipant.telegramUsername
+        ? newParticipant.telegramUsername.replace("@", "").trim()
+        : undefined,
       shareAmount: newParticipant.shareAmount || "0",
     };
 
@@ -92,6 +197,9 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
         p.shareAmount = equalShare.toFixed(2);
       });
     }
+
+    console.log("🔄 Добавляем участника:", participant);
+    console.log("📋 Обновленный список участников:", updatedParticipants);
 
     onParticipantsChange(updatedParticipants);
 
@@ -111,11 +219,62 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
 
     // Если тип разделения "равномерно", пересчитываем суммы
     if (splitType === "equal" && updatedParticipants.length > 0) {
-      const equalShare = totalAmount / updatedParticipants.length;
-      updatedParticipants.forEach(p => {
-        p.shareAmount = equalShare.toFixed(2);
+      const distributedAmounts = distributeAmountEqually(
+        totalAmount,
+        updatedParticipants.length
+      );
+      updatedParticipants.forEach((p, index) => {
+        p.shareAmount = distributedAmounts[index];
       });
     }
+
+    onParticipantsChange(updatedParticipants);
+    hapticFeedback.selection();
+  };
+
+  const handlePayerChange = (participantId: string, isPayer: boolean) => {
+    const updatedParticipants = participants.map(p => {
+      if (p.id === participantId) {
+        return { ...p, isPayer };
+      } else if (isPayer) {
+        // Если отмечаем кого-то как плательщика, снимаем отметку с остальных
+        return { ...p, isPayer: false };
+      }
+      return p;
+    });
+
+    onParticipantsChange(updatedParticipants);
+    hapticFeedback.selection();
+  };
+
+  const handleAmountChange = (participantId: string, newAmount: string) => {
+    // Если режим "равномерно" и пользователь начал изменять сумму вручную,
+    // переключаем на режим "неравный"
+    if (splitType === "equal") {
+      onSplitTypeChange("custom");
+    }
+
+    const updatedParticipants = participants.map(p => {
+      if (p.id === participantId) {
+        return { ...p, shareAmount: newAmount };
+      }
+      return p;
+    });
+
+    onParticipantsChange(updatedParticipants);
+  };
+
+  const handleEqualSplit = () => {
+    if (participants.length === 0 || totalAmount <= 0) return;
+
+    const distributedAmounts = distributeAmountEqually(
+      totalAmount,
+      participants.length
+    );
+    const updatedParticipants = participants.map((p, index) => ({
+      ...p,
+      shareAmount: distributedAmounts[index],
+    }));
 
     onParticipantsChange(updatedParticipants);
     hapticFeedback.selection();
@@ -133,54 +292,111 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
   return (
     <div className="space-y-4">
       {/* Список участников */}
-      <div className="space-y-2">
-        {participants.map(participant => (
-          <div
-            key={participant.id}
-            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-          >
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                {participant.name.charAt(0).toUpperCase()}
-              </div>
-              <div>
-                <div className="font-medium text-gray-900">
-                  {participant.name}
-                </div>
-                {participant.telegramUsername && (
-                  <div className="text-sm text-gray-500">
-                    @{participant.telegramUsername}
-                  </div>
-                )}
-              </div>
+      {participants.length > 0 && (
+        <div className="participants-list">
+          <div className="participants-header">
+            <div className="participants-count">
+              {participants.length}{" "}
+              {participants.length === 1
+                ? "участник"
+                : participants.length < 5
+                ? "участника"
+                : "участников"}
             </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-sm font-medium text-gray-700">
-                {participant.shareAmount} USDT
-              </span>
+            {splitType === "custom" && participants.length > 1 && (
               <button
-                onClick={() => handleRemoveParticipant(participant.id)}
-                className="text-red-500 hover:text-red-700 p-1"
+                onClick={handleEqualSplit}
+                className="equal-split-button"
+                title="Разделить поровну"
               >
-                ✕
+                ⚖️ Равномерно
               </button>
-            </div>
+            )}
           </div>
-        ))}
-      </div>
+          {participants.map(participant => {
+            console.log("🎨 Рендерим участника:", participant);
+            const isSelf =
+              user && participant.telegramUserId === user.id.toString();
+            return (
+              <div
+                key={participant.id}
+                className={`participant-item ${
+                  isSelf ? "self-participant" : ""
+                }`}
+              >
+                <div className="participant-info">
+                  <div className="participant-avatar">
+                    {participant.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="participant-details">
+                    <h4>
+                      {participant.name}
+                      {isSelf && <span className="self-badge"> (Вы)</span>}
+                    </h4>
+                    {participant.telegramUsername && (
+                      <p>@{participant.telegramUsername}</p>
+                    )}
+                  </div>
+                </div>
+                <div className="participant-amount-section">
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={participant.shareAmount || "0"}
+                    onChange={e =>
+                      handleAmountChange(participant.id, e.target.value)
+                    }
+                    className="amount-input"
+                    placeholder="0.00"
+                    disabled={splitType === "equal"}
+                    title={
+                      splitType === "equal"
+                        ? "Сумма рассчитывается автоматически"
+                        : "Введите сумму"
+                    }
+                  />
+                  <span className="currency-label">{currency}</span>
+                </div>
+                <div className="participant-actions">
+                  <label className="payer-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={participant.isPayer || false}
+                      onChange={e =>
+                        handlePayerChange(participant.id, e.target.checked)
+                      }
+                      title="Отметить как плательщика за весь счёт"
+                    />
+                    <span className="checkbox-label">💳 Платил</span>
+                  </label>
+                  <button
+                    onClick={() => handleRemoveParticipant(participant.id)}
+                    className="remove-participant"
+                    title="Удалить участника"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Кнопка добавления участника */}
       {!showAddForm && (
-        <div className="space-y-2">
-          <ContactSelector
+        <div className="add-participant-section">
+          <FriendsSelect
             onSelect={handleContactSelect}
             placeholder="Выберите из друзей"
-            className="w-full"
+            excludeParticipants={participants}
+            friends={friends}
           />
 
           <button
             onClick={() => setShowAddForm(true)}
-            className="w-full px-4 py-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="add-manual-button"
           >
             + Добавить участника вручную
           </button>
@@ -189,13 +405,11 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
 
       {/* Форма добавления участника */}
       {showAddForm && (
-        <div className="p-4 border border-gray-300 rounded-lg bg-white space-y-4">
-          <h3 className="font-medium text-gray-900">Добавить участника</h3>
+        <div className="participant-form">
+          <h3>Добавить участника</h3>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Имя участника
-            </label>
+          <div className="form-group">
+            <label>Имя участника</label>
             <input
               type="text"
               value={newParticipant.name}
@@ -203,14 +417,11 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
                 setNewParticipant({ ...newParticipant, name: e.target.value })
               }
               placeholder="Введите имя"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Telegram username (опционально)
-            </label>
+          <div className="form-group">
+            <label>Telegram username (опционально)</label>
             <UsernameInput
               value={newParticipant.telegramUsername}
               onChange={value =>
@@ -221,15 +432,12 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
               }
               placeholder="Введите @username"
               suggestions={suggestions}
-              className="w-full"
             />
           </div>
 
           {splitType === "custom" && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Сумма к оплате (USDT)
-              </label>
+            <div className="form-group">
+              <label>Сумма к оплате ({currency})</label>
               <input
                 type="number"
                 step="0.01"
@@ -241,21 +449,17 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
                   })
                 }
                 placeholder="0.00"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
           )}
 
-          <div className="flex space-x-2">
-            <button
-              onClick={handleAddParticipant}
-              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
+          <div className="form-actions">
+            <button onClick={handleAddParticipant} className="primary-button">
               Добавить
             </button>
             <button
               onClick={() => setShowAddForm(false)}
-              className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-500"
+              className="secondary-button"
             >
               Отмена
             </button>
@@ -264,23 +468,62 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
       )}
 
       {/* Итоговая сумма */}
-      <div className="p-3 bg-gray-100 rounded-lg">
-        <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-700">Итого:</span>
+      <div className="total-summary">
+        <div className="total-row">
+          <span className="total-label">Итого:</span>
           <span
-            className={`font-bold ${
-              isTotalValid ? "text-green-600" : "text-red-600"
-            }`}
+            className={`total-amount ${isTotalValid ? "valid" : "invalid"}`}
           >
-            {calculateTotal().toFixed(2)} / {totalAmount.toFixed(2)} USDT
+            {calculateTotal().toFixed(2)} / {totalAmount.toFixed(2)} {currency}
           </span>
         </div>
         {!isTotalValid && (
-          <div className="text-sm text-red-600 mt-1">
+          <div className="total-error">
             Сумма долей должна равняться общей сумме счета
           </div>
         )}
       </div>
+
+      {/* Информация о плательщике и долгах */}
+      {participants.some(p => p.isPayer) && (
+        <div className="payer-info-section">
+          <h4>💳 Информация о платежах</h4>
+          {participants.map(participant => {
+            if (participant.isPayer) {
+              const othersDebt = participants
+                .filter(p => !p.isPayer)
+                .reduce((sum, p) => sum + parseFloat(p.shareAmount || "0"), 0);
+
+              return (
+                <div key={participant.id} className="payer-info">
+                  <div className="payer-details">
+                    <strong>{participant.name}</strong> заплатил за весь счёт
+                  </div>
+                  <div className="debt-info">
+                    Остальные участники должны ему:{" "}
+                    <strong>
+                      {othersDebt.toFixed(2)} {currency}
+                    </strong>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+      )}
+
+      {/* Ошибка валидации плательщика */}
+      {payerError && (
+        <div className="payer-error-section">
+          <div className="error-message">
+            ⚠️ {payerError}
+          </div>
+          <div className="payer-hint">
+            Отметьте галочкой "💳 Платил" у того участника, кто заплатил за счёт
+          </div>
+        </div>
+      )}
     </div>
   );
 };

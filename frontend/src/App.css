@@ -9,6 +9,110 @@
   --tg-theme-secondary-bg-color: #f1f1f1;
 }
 
+/* Стили для кошелька */
+.wallet-display {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.wallet-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wallet-icon {
+  font-size: 18px;
+}
+
+.wallet-address {
+  font-family: monospace;
+  font-size: 14px;
+  color: var(--tg-theme-text-color);
+}
+
+.wallet-connect-prompt {
+  text-align: center;
+  padding: 16px;
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+}
+
+.wallet-connect-prompt p {
+  margin: 0 0 12px 0;
+  color: var(--tg-theme-hint-color);
+  font-size: 14px;
+}
+
+.wallet-connect {
+  padding: 20px;
+  text-align: center;
+}
+
+.wallet-connect-content {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.wallet-connect-content h3 {
+  margin: 0 0 12px 0;
+  font-size: 18px;
+  color: var(--tg-theme-text-color);
+}
+
+.wallet-connect-content p {
+  margin: 0 0 20px 0;
+  color: var(--tg-theme-hint-color);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.wallet-connect-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.wallet-connect-actions .secondary-button {
+  background-color: transparent;
+  color: var(--tg-theme-text-color);
+  border: 1px solid var(--tg-theme-hint-color);
+}
+
+.wallet-connect-actions .secondary-button:hover {
+  background-color: var(--tg-theme-secondary-bg-color);
+}
+
+/* Модальное окно */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: var(--tg-theme-bg-color);
+  border-radius: 12px;
+  max-width: 400px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
 /* Безопасные зоны для различных элементов */
 .safe-area-top {
   padding-top: env(safe-area-inset-top);
@@ -185,15 +289,26 @@
   padding: 16px;
   cursor: pointer;
   transition: opacity 0.2s, transform 0.1s;
+  position: relative;
+}
+
+.bill-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex: 1;
+  cursor: pointer;
+  position: relative;
+}
+
+.bill-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .bill-card:hover {
   opacity: 0.9;
-}
-
-.bill-card:active {
-  opacity: 0.7;
-  transform: scale(0.98);
 }
 
 .bill-card h3 {
@@ -230,6 +345,36 @@
 .status.cancelled {
   background-color: #ffebee;
   color: #d32f2f;
+}
+
+.delete-bill-btn {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+  opacity: 0.7;
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 10;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.delete-bill-btn:hover {
+  background-color: rgba(244, 67, 54, 0.1);
+  opacity: 1;
+}
+
+.delete-bill-btn:active {
+  background-color: rgba(244, 67, 54, 0.2);
 }
 
 /* Create Bill Page */
@@ -503,10 +648,95 @@
   display: block;
 }
 
+/* Стили для ошибки валидации плательщика */
+.payer-error-section {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+}
+
+.payer-error-section .error-message {
+  color: #856404;
+  font-size: 14px;
+  font-weight: 500;
+  margin: 0 0 8px 0;
+}
+
+.payer-hint {
+  color: #856404;
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Стили для общего блока ошибок формы */
+.form-errors {
+  margin-bottom: 20px;
+  padding: 16px;
+  background-color: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 8px;
+}
+
+.error-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.error-icon {
+  font-size: 16px;
+}
+
+.error-title {
+  font-weight: 600;
+  color: #c53030;
+  font-size: 14px;
+}
+
+.error-list {
+  margin: 0;
+  padding-left: 20px;
+  list-style: none;
+}
+
+.error-item {
+  color: #c53030;
+  font-size: 13px;
+  margin-bottom: 4px;
+  position: relative;
+}
+
+.error-item::before {
+  content: "•";
+  color: #c53030;
+  font-weight: bold;
+  position: absolute;
+  left: -15px;
+}
+
 .form-group input.error,
 .form-group textarea.error,
 .form-group select.error {
   border: 2px solid #ff5252;
+  background-color: #fff5f5;
+}
+
+/* Стили для выделения секций с ошибками */
+.participants-section.has-error {
+  border: 2px solid #ff5252;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* Стили для ошибок в split-type-toggle */
+.split-type-toggle.error {
+  border: 2px solid #ff5252;
+  border-radius: 8px;
+  padding: 4px;
+  background-color: #fff5f5;
 }
 
 /* Bill View Page */
@@ -742,7 +972,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 16px;
 }
 
@@ -1495,6 +1725,138 @@
   padding: 0;
 }
 
+.friends-page .header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.friends-page .header h1 {
+  font-size: 24px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: var(--tg-theme-text-color);
+}
+
+.friends-page .header p {
+  font-size: 16px;
+  color: var(--tg-theme-hint-color);
+  margin: 0;
+}
+
+.friends-page .actions {
+  margin-bottom: 24px;
+}
+
+.friends-page .bill-form {
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.friends-page .bill-form h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: var(--tg-theme-text-color);
+  text-align: center;
+}
+
+.friends-page .form-group {
+  margin-bottom: 20px;
+}
+
+.friends-page .form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color);
+  margin-bottom: 8px;
+}
+
+.friends-page .form-group input {
+  width: 100%;
+  padding: 16px;
+  background-color: var(--tg-theme-bg-color);
+  color: var(--tg-theme-text-color);
+  border: 2px solid transparent;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.friends-page .form-group input:focus {
+  outline: none;
+  border-color: var(--tg-theme-button-color);
+  box-shadow: 0 0 0 3px rgba(36, 129, 204, 0.1);
+}
+
+.friends-page .form-group input::placeholder {
+  color: var(--tg-theme-hint-color);
+  opacity: 0.7;
+}
+
+.friends-page .form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.friends-page .form-actions .primary-button {
+  flex: 1;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.friends-page .form-actions .secondary-button {
+  flex: 1;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.friends-page .error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: rgba(244, 67, 54, 0.1);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.friends-page .error-icon {
+  font-size: 20px;
+}
+
+.friends-page .error-text {
+  flex: 1;
+  color: #f44336;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.friends-page .error-retry-btn {
+  background-color: #f44336;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.friends-page .error-retry-btn:hover {
+  opacity: 0.9;
+}
+
 .friends-section h2 {
   font-size: 20px;
   font-weight: 600;
@@ -1520,11 +1882,6 @@
 
 .friend-card:hover {
   opacity: 0.9;
-}
-
-.friend-card:active {
-  opacity: 0.7;
-  transform: scale(0.98);
 }
 
 .friend-info {
@@ -1644,7 +2001,243 @@
   color: var(--tg-theme-hint-color);
 }
 
+/* Стили для модального окна */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+
+.modal-content {
+  background-color: var(--tg-theme-bg-color);
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid var(--tg-theme-secondary-bg-color);
+  margin-bottom: 20px;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--tg-theme-hint-color);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s;
+}
+
+.modal-close:hover {
+  background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.modal-body {
+  padding: 0 20px 20px 20px;
+}
+
+.warning-text {
+  color: #ff9800;
+  font-size: 14px;
+  margin: 12px 0 20px 0;
+  padding: 12px;
+  background-color: rgba(255, 152, 0, 0.1);
+  border-radius: 8px;
+  border-left: 4px solid #ff9800;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-actions .secondary-button,
+.modal-actions .danger-button {
+  flex: 1;
+  max-width: 120px;
+}
+
+.friend-summary {
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.summary-item:last-child {
+  margin-bottom: 0;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color);
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+}
+
+.debts-details h4 {
+  margin: 0 0 16px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+}
+
+.debts-list-detailed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.debt-detail-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px;
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.debt-detail-item.clickable {
+  cursor: pointer;
+}
+
+.debt-detail-info {
+  flex: 1;
+  margin-right: 16px;
+}
+
+.debt-detail-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color);
+  margin-bottom: 4px;
+}
+
+.debt-detail-status {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+  margin-bottom: 4px;
+}
+
+.debt-detail-date {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+}
+
+.debt-detail-amount {
+  font-size: 16px;
+  font-weight: 700;
+  color: #ff5252;
+  text-align: right;
+  margin-right: 24px;
+}
+
+.debt-detail-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--tg-theme-hint-color);
+  font-size: 18px;
+  opacity: 0.6;
+}
+
+.no-debts {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--tg-theme-hint-color);
+}
+
+/* Стили для кликабельных элементов */
+.debt-item.clickable {
+  cursor: pointer;
+  position: relative;
+}
+
+.debt-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--tg-theme-hint-color);
+  font-size: 18px;
+  opacity: 0.6;
+}
+
 /* Dark theme for friends page */
+.app.dark .friends-page .bill-form {
+  background: linear-gradient(135deg, #232e3c, #1a252f);
+  border: 1px solid #2a3441;
+}
+
+.app.dark .friends-page .form-group input {
+  background-color: #2a3441;
+  color: #ffffff;
+  border: 2px solid #3a4451;
+}
+
+.app.dark .friends-page .form-group input:focus {
+  border-color: #64b5f6;
+  box-shadow: 0 0 0 3px rgba(100, 181, 246, 0.2);
+}
+
+.app.dark .friends-page .form-group input::placeholder {
+  color: #708499;
+}
+
+.app.dark .friends-page .error-message {
+  background-color: rgba(244, 67, 54, 0.15);
+  border-color: rgba(244, 67, 54, 0.4);
+}
+
+.app.dark .friends-page .error-text {
+  color: #ff5252;
+}
+
 .app.dark .friend-card {
   background: linear-gradient(135deg, #232e3c, #1a252f);
   border: 1px solid #2a3441;
@@ -1665,4 +2258,68 @@
 
 .app.dark .delete-btn {
   background: linear-gradient(135deg, #f44336, #d32f2f);
+}
+
+.app.dark .delete-bill-btn:hover {
+  background-color: rgba(244, 67, 54, 0.2);
+}
+
+.app.dark .warning-text {
+  color: #ffb74d;
+  background-color: rgba(255, 152, 0, 0.15);
+  border-left-color: #ffb74d;
+}
+
+/* Стили для табов */
+.tabs {
+  display: flex;
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+  gap: 2px;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--tg-theme-text-color);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  min-width: 0;
+}
+
+.tab:hover {
+  opacity: 0.8;
+}
+
+.tab.active {
+  background-color: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  font-weight: 600;
+}
+
+.tab.active:hover {
+  opacity: 1;
+}
+
+/* Dark theme для табов */
+.app.dark .tabs {
+  background-color: #2a3441;
+  border: 1px solid #3a4451;
+}
+
+.app.dark .tab {
+  color: #ffffff;
+}
+
+.app.dark .tab.active {
+  background-color: #64b5f6;
+  color: #ffffff;
 }

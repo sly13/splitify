@@ -9,8 +9,7 @@ const isTestMode = (): boolean => {
 };
 
 // Базовый URL API (будет настроен в зависимости от окружения)
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:4041/api";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 // Создание экземпляра Axios
 const api: AxiosInstance = axios.create({
@@ -34,6 +33,9 @@ api.interceptors.request.use(
       import.meta.env.VITE_TEST_MODE
     );
 
+    // Всегда добавляем заголовок тестового режима
+    config.headers.set("x-test-mode", testMode.toString());
+
     if (tg) {
       // Добавляем заголовки для аутентификации
       if (tg.initData) {
@@ -44,6 +46,12 @@ api.interceptors.request.use(
         );
         config.headers.set("x-telegram-init-data", tg.initData);
       }
+    } else if (testMode) {
+      // В тестовом режиме добавляем тестовые заголовки
+      config.headers.set("x-telegram-hash", "test_hash");
+      config.headers.set("x-user-id", "123456789");
+      config.headers.set("x-telegram-init-data", "test_init_data");
+      config.headers.set("X-Telegram-Init-Data", "test_init_data");
     }
 
     return config;
@@ -100,38 +108,33 @@ api.interceptors.response.use(
 export const billApi = {
   // Получить все счета пользователя
   getBills: (): Promise<any> => {
-    const testMode = isTestMode();
-    const endpoint = testMode ? "/bills/test" : "/bills";
-    console.log("Using endpoint:", endpoint);
-    return api.get(endpoint);
+    console.log("Using bills endpoint: /bills");
+    return api.get("/bills");
   },
 
   // Получить конкретный счет
   getBill: (billId: string): Promise<any> => {
-    const testMode = isTestMode();
-    const endpoint = testMode ? `/bills/test/${billId}` : `/bills/${billId}`;
-    console.log("Getting bill with endpoint:", endpoint);
-    return api.get(endpoint);
+    console.log("Getting bill with endpoint:", `/bills/${billId}`);
+    return api.get(`/bills/${billId}`);
   },
 
   // Создать новый счет
   createBill: (data: any): Promise<any> => {
-    const testMode = isTestMode();
-    const endpoint = testMode ? "/bills/test" : "/bills";
-
     // Преобразуем данные участников для API
     const apiData = {
       ...data,
       participants: data.participants.map((participant: any) => ({
         name: participant.name,
-        telegramUsername: participant.telegramUsername,
+        telegramUsername: participant.telegramUsername || undefined,
         shareAmount: participant.amount.toString(),
+        isPayer: participant.isPayer || false,
       })),
+      creatorWalletAddress: data.creatorWalletAddress || undefined,
     };
 
-    console.log("Creating bill with endpoint:", endpoint);
+    console.log("Creating bill with endpoint: /bills");
     console.log("API data:", apiData);
-    return api.post(endpoint, apiData);
+    return api.post("/bills", apiData);
   },
 
   // Присоединиться к счету
@@ -148,17 +151,33 @@ export const billApi = {
   deleteBill: (billId: string): Promise<any> => {
     return api.delete(`/bills/${billId}`);
   },
+
+  // Отметить участника как плательщика за весь счёт
+  markPayer: (
+    billId: string,
+    participantId: string,
+    isPayer: boolean
+  ): Promise<any> => {
+    return api.put(`/bills/${billId}/participants/${participantId}/payer`, {
+      isPayer,
+    });
+  },
 };
 
 // API методы для работы с платежами
 export const paymentApi = {
   // Создать платеж
   createPayment: (data: any): Promise<any> => {
-    return api.post("/payments", data);
+    console.log("Using create payment endpoint: /payments/intent");
+    return api.post("/payments/intent", data);
   },
 
   // Получить статус платежа
   getPaymentStatus: (paymentId: string): Promise<any> => {
+    console.log(
+      "Using get payment status endpoint:",
+      `/payments/${paymentId}/status`
+    );
     return api.get(`/payments/${paymentId}/status`);
   },
 
@@ -173,14 +192,27 @@ export const paymentApi = {
 
 // API методы для работы с пользователями
 export const userApi = {
+  // Получить краткую информацию о текущем пользователе
+  getMe: (): Promise<any> => {
+    const testMode = isTestMode();
+    const endpoint = testMode ? "/me/test" : "/me";
+    console.log("Using me endpoint:", endpoint);
+    return api.get(endpoint);
+  },
+
   // Получить информацию о пользователе
   getUser: (): Promise<any> => {
-    return api.get("/user");
+    return api.get("/user/profile");
   },
 
   // Обновить профиль пользователя
   updateProfile: (data: any): Promise<any> => {
     return api.put("/user/profile", data);
+  },
+
+  // Получить статистику пользователя
+  getUserStats: (): Promise<any> => {
+    return api.get("/user/stats");
   },
 };
 
@@ -188,10 +220,8 @@ export const userApi = {
 export const friendsApi = {
   // Получить список друзей
   getFriends: (): Promise<any> => {
-    const testMode = isTestMode();
-    const endpoint = testMode ? "/friends/test" : "/friends";
-    console.log("Using friends endpoint:", endpoint);
-    return api.get(endpoint);
+    console.log("Using friends endpoint: /friends");
+    return api.get("/friends");
   },
 
   // Добавить друга
@@ -199,6 +229,7 @@ export const friendsApi = {
     name: string;
     telegramUsername?: string;
   }): Promise<any> => {
+    console.log("Using add friend endpoint: /friends");
     return api.post("/friends", data);
   },
 
@@ -207,17 +238,79 @@ export const friendsApi = {
     friendId: string,
     data: { name?: string; telegramUsername?: string }
   ): Promise<any> => {
+    console.log("Using update friend endpoint:", `/friends/${friendId}`);
     return api.put(`/friends/${friendId}`, data);
   },
 
   // Удалить друга
   deleteFriend: (friendId: string): Promise<any> => {
+    console.log("Using delete friend endpoint:", `/friends/${friendId}`);
     return api.delete(`/friends/${friendId}`);
   },
 
   // Поиск пользователя по username
   searchUser: (username: string): Promise<any> => {
+    console.log("Using search user endpoint:", `/friends/search/${username}`);
     return api.get(`/friends/search/${username}`);
+  },
+};
+
+// Интерфейсы для аналитики
+interface AnalyticsResponse {
+  success: boolean;
+  data: {
+    stats: {
+      totalBills: number;
+      completedBills: number;
+      activeBills: number;
+      totalAmount: number;
+      paidAmount: number;
+      completionRate: number;
+      remainingAmount: number;
+    };
+    friendsDebts: Array<{
+      name: string;
+      telegramUsername?: string;
+      totalDebt: number;
+      billsCount: number;
+      bills: Array<{ id: string; title: string; amount: number }>;
+    }>;
+  };
+}
+
+interface FriendAnalyticsResponse {
+  success: boolean;
+  data: {
+    friendId: string;
+    totalDebt: number;
+    debts: Array<{
+      billId: string;
+      billTitle: string;
+      amount: number;
+      currency: string;
+      createdAt: string;
+      status: string;
+    }>;
+  };
+}
+
+// API методы для аналитики
+export const analyticsApi = {
+  // Получить аналитику долгов
+  getDebtsAnalytics: (): Promise<{ data: AnalyticsResponse }> => {
+    console.log("Using analytics endpoint: /analytics/debts");
+    return api.get("/analytics/debts");
+  },
+
+  // Получить детальную аналитику по конкретному другу
+  getFriendDebtsAnalytics: (
+    friendId: string
+  ): Promise<{ data: FriendAnalyticsResponse }> => {
+    console.log(
+      "Using friend analytics endpoint:",
+      `/analytics/debts/${friendId}`
+    );
+    return api.get(`/analytics/debts/${friendId}`);
   },
 };
 

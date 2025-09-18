@@ -1,11 +1,8 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../config/database";
-import {
-  CreateBillRequest,
-  CreateBillResponse,
-  BillDetailsResponse,
-} from "../types";
+import { CreateBillRequest, BillDetailsResponse } from "../types";
 import Decimal from "decimal.js";
+import { sendTelegramMessage } from "../utils/telegram";
 
 export async function billsRoutes(fastify: FastifyInstance) {
   // Получение списка счетов пользователя
@@ -91,8 +88,14 @@ export async function billsRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       try {
-        const { title, totalAmount, currency, splitType, participants } =
-          request.body;
+        const {
+          title,
+          totalAmount,
+          currency,
+          splitType,
+          participants,
+          creatorWalletAddress,
+        } = request.body;
         const creatorId = request.user!.id;
 
         const billTotal = new Decimal(totalAmount);
@@ -109,19 +112,29 @@ export async function billsRoutes(fastify: FastifyInstance) {
           }));
         }
 
-        // Проверяем, что сумма долей равна общей сумме
+        // Проверяем, что сумма долей не меньше общей суммы
         const totalShares = processedParticipants.reduce((sum, p) => {
           return sum.add(new Decimal(p.shareAmount));
         }, new Decimal(0));
 
-        if (!totalShares.equals(billTotal)) {
+        // Если сумма долей меньше общей суммы - ошибка
+        // Если сумма долей больше общей суммы - это норма (округление)
+        if (totalShares.lessThan(billTotal.sub(new Decimal(0.01)))) {
           return reply.status(400).send({
-            error: "Sum of participant shares must equal total amount",
+            error: "Sum of participant shares cannot be less than total amount",
           });
         }
 
         // Создаем счет и участников в транзакции
         const result = await prisma.$transaction(async tx => {
+          // Обновляем кошелек пользователя если он предоставлен
+          if (creatorWalletAddress) {
+            await tx.user.update({
+              where: { id: creatorId },
+              data: { tonWalletAddress: creatorWalletAddress },
+            });
+          }
+
           const bill = await tx.bill.create({
             data: {
               title,
@@ -155,10 +168,25 @@ export async function billsRoutes(fastify: FastifyInstance) {
               }
 
               // Автоматически создаем друга, если указан username
-              if (participant.telegramUsername && participant.name) {
+              console.log(`🔍 Обрабатываем участника:`, {
+                name: participant.name,
+                telegramUsername: participant.telegramUsername,
+                hasUsername: !!participant.telegramUsername,
+                usernameLength: participant.telegramUsername?.length || 0,
+              });
+
+              if (
+                participant.telegramUsername &&
+                participant.telegramUsername.trim() &&
+                participant.name
+              ) {
                 const cleanUsername = participant.telegramUsername.replace(
                   "@",
                   ""
+                );
+
+                console.log(
+                  `🔍 Проверяем существование друга: ${participant.name} (@${cleanUsername})`
                 );
 
                 // Проверяем, существует ли уже такой друг
@@ -171,6 +199,9 @@ export async function billsRoutes(fastify: FastifyInstance) {
 
                 // Если друг не существует, создаем его
                 if (!existingFriend) {
+                  console.log(
+                    `✅ Создаем нового друга: ${participant.name} (@${cleanUsername})`
+                  );
                   await tx.friend.create({
                     data: {
                       ownerId: creatorId,
@@ -178,7 +209,22 @@ export async function billsRoutes(fastify: FastifyInstance) {
                       telegramUsername: cleanUsername,
                     },
                   });
+                  console.log(
+                    `🎉 Друг ${participant.name} успешно добавлен в список друзей!`
+                  );
+                } else {
+                  console.log(
+                    `ℹ️ Друг ${participant.name} уже существует в списке друзей`
+                  );
                 }
+              } else {
+                console.log(
+                  `⚠️ Не удается создать друга: отсутствует имя или username для участника`,
+                  {
+                    name: participant.name,
+                    telegramUsername: participant.telegramUsername,
+                  }
+                );
               }
 
               return tx.billParticipant.create({
@@ -190,6 +236,7 @@ export async function billsRoutes(fastify: FastifyInstance) {
                   name: participant.name,
                   shareAmount: new Decimal(participant.shareAmount),
                   paymentStatus: "pending",
+                  isPayer: participant.isPayer || false,
                 },
               });
             })
@@ -198,12 +245,60 @@ export async function billsRoutes(fastify: FastifyInstance) {
           return { bill, participants: billParticipants };
         });
 
+        // Получаем созданный счет с полными данными
+        const createdBill = await prisma.bill.findUnique({
+          where: { id: result.bill.id },
+          include: {
+            creator: {
+              select: {
+                id: true,
+                firstName: true,
+                username: true,
+              },
+            },
+            participants: {
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    username: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (!createdBill) {
+          return reply
+            .status(500)
+            .send({ error: "Failed to retrieve created bill" });
+        }
+
         const shareUrl = `${
           process.env.FRONTEND_URL || "http://localhost:3000"
-        }?startapp=bill_${result.bill.id}`;
+        }?startapp=bill_${createdBill.id}`;
 
-        const response: CreateBillResponse = {
-          id: result.bill.id,
+        const response = {
+          id: createdBill.id,
+          title: createdBill.title,
+          currency: createdBill.currency,
+          totalAmount: createdBill.totalAmount.toString(),
+          splitType: createdBill.splitType,
+          status: createdBill.status,
+          createdAt: createdBill.createdAt.toISOString(),
+          updatedAt: createdBill.updatedAt.toISOString(),
+          creator: createdBill.creator,
+          participants: createdBill.participants.map(p => ({
+            id: p.id,
+            name: p.name,
+            telegramUsername: p.telegramUsername,
+            telegramUserId: p.telegramUserId,
+            amount: p.shareAmount.toString(),
+            status: p.paymentStatus,
+            user: p.user,
+          })),
           shareUrl,
         };
 
@@ -288,6 +383,7 @@ export async function billsRoutes(fastify: FastifyInstance) {
             name: p.name,
             shareAmount: p.shareAmount.toString(),
             paymentStatus: p.paymentStatus,
+            isPayer: p.isPayer,
             user: p.user,
           })),
           summary: {
@@ -357,6 +453,390 @@ export async function billsRoutes(fastify: FastifyInstance) {
       } catch (error) {
         console.error("Error closing bill:", error);
         return reply.status(500).send({ error: "Failed to close bill" });
+      }
+    }
+  );
+
+  // Отправка ссылки на счет выбранным участникам
+  fastify.post<{
+    Params: { id: string };
+    Body: { participantIds: string[]; shareUrl: string };
+  }>(
+    "/api/bills/:id/send-to-participants",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const { participantIds, shareUrl } = request.body;
+        const userId = request.user!.id;
+
+        const bill = await prisma.bill.findUnique({
+          where: { id },
+          include: {
+            participants: {
+              include: {
+                user: true,
+              },
+            },
+            creator: {
+              select: {
+                firstName: true,
+                username: true,
+              },
+            },
+          },
+        });
+
+        if (!bill) {
+          return reply.status(404).send({ error: "Bill not found" });
+        }
+
+        if (bill.creatorId !== userId) {
+          return reply
+            .status(403)
+            .send({ error: "Only bill creator can send messages" });
+        }
+
+        // Получаем выбранных участников с telegramUserId
+        const selectedParticipants = bill.participants.filter(
+          p =>
+            participantIds.includes(p.id) &&
+            p.telegramUserId &&
+            p.telegramUserId !== userId.toString()
+        );
+
+        if (selectedParticipants.length === 0) {
+          return reply
+            .status(400)
+            .send({ error: "No valid participants selected" });
+        }
+
+        // Получаем токен бота
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        if (!botToken) {
+          return reply
+            .status(500)
+            .send({ error: "Telegram bot token not configured" });
+        }
+
+        // Отправляем сообщения через Telegram Bot API
+        const message =
+          `💰 <b>Новый счет от ${bill.creator.firstName}!</b>\n\n` +
+          `📋 <b>Название:</b> ${bill.title}\n` +
+          `💵 <b>Сумма:</b> ${bill.totalAmount} ${bill.currency}\n` +
+          `👥 <b>Участников:</b> ${bill.participants.length}\n\n` +
+          `🔗 <a href="${shareUrl}">Перейти к счету</a>`;
+
+        const sendPromises = selectedParticipants.map(async participant => {
+          try {
+            console.log(
+              `📨 Отправляем сообщение участнику ${participant.name} (${participant.telegramUserId})`
+            );
+
+            const result = await sendTelegramMessage(
+              participant.telegramUserId!,
+              message,
+              botToken
+            );
+
+            if (result.success) {
+              console.log(
+                `✅ Сообщение отправлено участнику ${participant.name}`
+              );
+              return { success: true, participantId: participant.id };
+            } else {
+              console.error(
+                `❌ Ошибка отправки участнику ${participant.name}:`,
+                result.error
+              );
+              return {
+                success: false,
+                participantId: participant.id,
+                error: result.error,
+              };
+            }
+          } catch (error) {
+            console.error(
+              `❌ Ошибка отправки участнику ${participant.name}:`,
+              error
+            );
+            return { success: false, participantId: participant.id, error };
+          }
+        });
+
+        const results = await Promise.allSettled(sendPromises);
+        const successful = results.filter(
+          r => r.status === "fulfilled" && r.value.success
+        ).length;
+        const failed = results.length - successful;
+
+        return reply.send({
+          success: true,
+          message: `Отправлено ${successful} из ${results.length} участников`,
+          details: {
+            total: results.length,
+            successful,
+            failed,
+          },
+        });
+      } catch (error) {
+        console.error("Error sending to all participants:", error);
+        return reply.status(500).send({ error: "Failed to send messages" });
+      }
+    }
+  );
+
+  // Отправка ссылки на счет конкретному участнику
+  fastify.post<{
+    Params: { id: string };
+    Body: { participantId: string; telegramUserId: string; appUrl: string };
+  }>(
+    "/api/bills/:id/send-to-participant",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const { participantId, telegramUserId, appUrl } = request.body;
+        const userId = request.user!.id;
+
+        const bill = await prisma.bill.findUnique({
+          where: { id },
+          include: {
+            participants: {
+              include: {
+                user: true,
+              },
+            },
+            creator: {
+              select: {
+                firstName: true,
+                username: true,
+              },
+            },
+          },
+        });
+
+        if (!bill) {
+          return reply.status(404).send({ error: "Bill not found" });
+        }
+
+        if (bill.creatorId !== userId) {
+          return reply
+            .status(403)
+            .send({ error: "Only bill creator can send messages" });
+        }
+
+        // Находим участника
+        const participant = bill.participants.find(p => p.id === participantId);
+        if (!participant) {
+          return reply.status(404).send({ error: "Participant not found" });
+        }
+
+        if (!participant.telegramUserId) {
+          return reply
+            .status(400)
+            .send({ error: "Participant has no Telegram ID" });
+        }
+
+        // Получаем токен бота
+        const botToken = process.env.TELEGRAM_BOT_TOKEN;
+        if (!botToken) {
+          return reply
+            .status(500)
+            .send({ error: "Telegram bot token not configured" });
+        }
+
+        // Создаем сообщение
+        const message =
+          `💰 <b>Счет от ${bill.creator.firstName}!</b>\n\n` +
+          `📋 <b>Название:</b> ${bill.title}\n` +
+          `💵 <b>Ваша доля:</b> ${participant.shareAmount} ${bill.currency}\n` +
+          `👥 <b>Всего участников:</b> ${bill.participants.length}\n\n` +
+          `🔗 <a href="${appUrl}">Открыть счет в приложении</a>`;
+
+        // Отправляем сообщение
+        const result = await sendTelegramMessage(
+          participant.telegramUserId,
+          message,
+          botToken
+        );
+
+        if (result.success) {
+          console.log(`✅ Сообщение отправлено участнику ${participant.name}`);
+          return reply.send({
+            success: true,
+            message: `Сообщение отправлено ${participant.name}`,
+          });
+        } else {
+          console.error(
+            `❌ Ошибка отправки участнику ${participant.name}:`,
+            result.error
+          );
+          return reply.status(500).send({
+            error: result.error || "Failed to send message",
+          });
+        }
+      } catch (error) {
+        console.error("Error sending to participant:", error);
+        return reply.status(500).send({ error: "Failed to send message" });
+      }
+    }
+  );
+
+  // Удаление счета (только если нет транзакций)
+  fastify.delete<{ Params: { id: string } }>(
+    "/api/bills/:id",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const userId = request.user!.id;
+
+        const bill = await prisma.bill.findUnique({
+          where: { id },
+          include: {
+            participants: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        });
+
+        if (!bill) {
+          return reply.status(404).send({ error: "Bill not found" });
+        }
+
+        if (bill.creatorId !== userId) {
+          return reply
+            .status(403)
+            .send({ error: "Only bill creator can delete the bill" });
+        }
+
+        // Проверяем, есть ли уже транзакции (платежи)
+        const hasPayments = bill.participants.some(
+          p => p.paymentStatus === "paid"
+        );
+
+        if (hasPayments) {
+          return reply.status(400).send({
+            error: "Cannot delete bill with existing payments",
+          });
+        }
+
+        // Удаляем счет и всех участников в транзакции
+        await prisma.$transaction(async tx => {
+          // Удаляем всех участников
+          await tx.billParticipant.deleteMany({
+            where: { billId: id },
+          });
+
+          // Удаляем счет
+          await tx.bill.delete({
+            where: { id },
+          });
+        });
+
+        return reply.send({ success: true });
+      } catch (error) {
+        console.error("Error deleting bill:", error);
+        return reply.status(500).send({ error: "Failed to delete bill" });
+      }
+    }
+  );
+
+  // Отметка участника как плательщика за весь счёт
+  fastify.put(
+    "/api/bills/:billId/participants/:participantId/payer",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { billId, participantId } = request.params as {
+          billId: string;
+          participantId: string;
+        };
+        const { isPayer } = request.body as { isPayer: boolean };
+        const userId = request.user!.id;
+
+        // Проверяем, что пользователь является создателем счёта
+        const bill = await prisma.bill.findFirst({
+          where: {
+            id: billId,
+            creatorId: userId,
+          },
+          include: {
+            participants: true,
+          },
+        });
+
+        if (!bill) {
+          return reply
+            .status(404)
+            .send({ error: "Bill not found or access denied" });
+        }
+
+        // Проверяем, что участник существует
+        const participant = bill.participants.find(p => p.id === participantId);
+        if (!participant) {
+          return reply.status(404).send({ error: "Participant not found" });
+        }
+
+        // Если отмечаем как плательщика, снимаем отметку с других участников
+        if (isPayer) {
+          await prisma.billParticipant.updateMany({
+            where: {
+              billId: billId,
+              isPayer: true,
+            },
+            data: {
+              isPayer: false,
+            },
+          });
+        }
+
+        // Обновляем статус участника
+        const updatedParticipant = await prisma.billParticipant.update({
+          where: {
+            id: participantId,
+          },
+          data: {
+            isPayer: isPayer,
+          },
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                username: true,
+              },
+            },
+          },
+        });
+
+        return reply.send({
+          success: true,
+          participant: {
+            id: updatedParticipant.id,
+            name: updatedParticipant.name,
+            shareAmount: updatedParticipant.shareAmount.toString(),
+            paymentStatus: updatedParticipant.paymentStatus,
+            isPayer: updatedParticipant.isPayer,
+            user: updatedParticipant.user,
+          },
+        });
+      } catch (error) {
+        console.error("Error updating payer status:", error);
+        return reply
+          .status(500)
+          .send({ error: "Failed to update payer status" });
       }
     }
   );

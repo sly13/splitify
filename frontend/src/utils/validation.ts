@@ -2,11 +2,14 @@ import { z } from "zod";
 
 // Схема для участника
 export const participantSchema = z.object({
+  id: z.string().optional(), // Добавляем ID для участника
   name: z.string().min(1, "Имя обязательно"),
   username: z.string().optional(),
   telegramUsername: z.string().optional(),
+  telegramUserId: z.string().optional(),
   amount: z.number().positive("Сумма должна быть больше 0"),
   percentage: z.number().min(0).max(100).optional(),
+  isPayer: z.boolean().optional(),
 });
 
 // Схема для создания счета
@@ -18,20 +21,33 @@ export const createBillSchema = z
     currency: z.enum(["USDT", "TON"]),
     participants: z
       .array(participantSchema)
-      .min(1, "Добавьте хотя бы одного участника"),
+      .min(2, "Добавьте минимум 2 участника"),
     splitType: z.enum(["equal", "custom"]),
+    creatorWalletAddress: z.string().optional(),
   })
   .refine(
     data => {
-      // Проверяем, что сумма участников равна общей сумме
+      // Проверяем, что сумма участников не меньше общей суммы
       const totalParticipantsAmount = data.participants.reduce(
         (sum, p) => sum + p.amount,
         0
       );
-      return Math.abs(totalParticipantsAmount - data.totalAmount) < 0.01;
+      // Если сумма долей меньше общей суммы - ошибка
+      // Если сумма долей больше общей суммы - это норма (округление)
+      return totalParticipantsAmount >= data.totalAmount - 0.01;
     },
     {
-      message: "Сумма долей участников должна равняться общей сумме",
+      message: "Сумма долей участников не может быть меньше общей суммы счета",
+      path: ["participants"],
+    }
+  )
+  .refine(
+    data => {
+      // Проверяем, что хотя бы один участник отмечен как плательщик
+      return data.participants.some(p => p.isPayer === true);
+    },
+    {
+      message: "Необходимо указать, кто заплатил за счёт",
       path: ["participants"],
     }
   );

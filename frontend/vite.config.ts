@@ -7,6 +7,13 @@ export default defineConfig({
   server: {
     port: 4040,
     host: true,
+    allowedHosts: [
+      "localhost",
+      "127.0.0.1",
+      "ab710ea9a264.ngrok-free.app",
+      ".ngrok-free.app",
+      ".ngrok.io",
+    ],
   },
   build: {
     outDir: "dist",

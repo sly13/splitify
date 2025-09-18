@@ -70,3 +70,45 @@ export function extractTelegramUserId(
 ): string | null {
   return initData.user?.id?.toString() || null;
 }
+
+// Функция для отправки сообщения через Telegram Bot API
+export async function sendTelegramMessage(
+  telegramUserId: string,
+  message: string,
+  botToken: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const telegramApiUrl = `https://api.telegram.org/bot${botToken}/sendMessage`;
+    
+    const response = await fetch(telegramApiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        chat_id: telegramUserId,
+        text: message,
+        parse_mode: 'HTML',
+        disable_web_page_preview: false,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Telegram API error:', data);
+      return { 
+        success: false, 
+        error: data.description || 'Unknown Telegram API error' 
+      };
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error('Error sending Telegram message:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error' 
+    };
+  }
+}

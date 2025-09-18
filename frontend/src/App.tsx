@@ -1,5 +1,11 @@
-import { type FC } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { type FC, useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+} from "react-router-dom";
 import { useTelegram } from "./hooks/useTelegram";
 import { useAppStore } from "./stores/appStore";
 import { useTheme } from "./hooks/useTheme";
@@ -11,6 +17,26 @@ import BillViewPage from "./components/BillViewPage";
 import SuccessPage from "./components/SuccessPage";
 import ErrorPage from "./components/ErrorPage";
 import "./App.css";
+
+// Компонент для обработки параметра startapp
+const StartAppHandler: FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { webApp } = useTelegram();
+
+  useEffect(() => {
+    // Проверяем параметр startapp из Telegram WebApp
+    if (webApp?.initDataUnsafe?.start_param) {
+      const billId = webApp.initDataUnsafe.start_param;
+      console.log("StartApp parameter found:", billId);
+
+      // Перенаправляем на страницу счета
+      navigate(`/bill/${billId}`);
+    }
+  }, [webApp, navigate]);
+
+  return null;
+};
 
 const App: FC = () => {
   const { isReady } = useTelegram();
@@ -30,6 +56,7 @@ const App: FC = () => {
 
   return (
     <Router>
+      <StartAppHandler />
       <Routes>
         <Route path="/" element={<Layout />}>
           <Route

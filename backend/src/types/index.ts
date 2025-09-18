@@ -26,7 +26,9 @@ export interface CreateBillRequest {
     telegramUsername?: string;
     name: string;
     shareAmount: string;
+    isPayer?: boolean;
   }[];
+  creatorWalletAddress?: string;
 }
 
 export interface CreateBillResponse {
@@ -53,6 +55,7 @@ export interface BillDetailsResponse {
     name: string;
     shareAmount: string;
     paymentStatus: string;
+    isPayer: boolean;
     user?: {
       id: string;
       firstName: string;

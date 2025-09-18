@@ -183,6 +183,7 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
       return reply.status(500).send({ error: "Failed to process webhook" });
     }
   });
+
 }
 
 // Вспомогательные функции для генерации платежных данных
