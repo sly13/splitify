@@ -75,6 +75,7 @@ export interface TelegramWebApp {
   ready: () => void;
   expand: () => void;
   close: () => void;
+  requestFullscreen?: () => void;
   // Дополнительные методы (если доступны в будущем)
   selectContact?: () => Promise<{
     contact: {

@@ -15,13 +15,21 @@ export const useTelegram = () => {
 
       // Инициализация WebApp
       tg.ready();
-      
+
       // Настройка полноэкранного режима
       tg.expand();
-      
+
+      // Дополнительный полноэкранный режим для мобильных платформ
+      if (tg.platform === 'android' || tg.platform === 'ios') {
+        if (tg.requestFullscreen) {
+          tg.requestFullscreen();
+        }
+        tg.expand();
+      }
+
       // Настраиваем цвет заголовка
-      tg.headerColor = '#2481cc';
-      
+      tg.headerColor = "#2481cc";
+
       // Получение данных пользователя
       if (tg.initDataUnsafe.user) {
         setUser(tg.initDataUnsafe.user);
@@ -39,7 +47,7 @@ export const useTelegram = () => {
         is_premium: false,
         photo_url: "",
       };
-      
+
       setUser(testUser);
       setIsReady(true);
 

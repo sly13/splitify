@@ -5,8 +5,11 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
     />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <meta name="format-detection" content="telephone=no" />
     <meta name="theme-color" content="#2481cc" />
     <title>Crypto Split Bill</title>
@@ -23,7 +26,8 @@
       }
 
       /* Telegram WebApp viewport - полноэкранный режим */
-      html, body {
+      html,
+      body {
         margin: 0;
         padding: 0;
         height: 100%;
@@ -55,7 +59,8 @@
       }
 
       /* Разрешаем выделение текста в input полях */
-      input, textarea {
+      input,
+      textarea {
         -webkit-user-select: text;
         -moz-user-select: text;
         -ms-user-select: text;
