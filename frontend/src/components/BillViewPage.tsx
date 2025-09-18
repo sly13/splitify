@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTelegram } from "../hooks/useTelegram";
 import { useBillStore } from "../stores/billStore";
+import { useAuth } from "../contexts/AuthContext";
 import { ParticipantStatus, type Participant } from "../types/app";
 import { billApi, userApi } from "../services/api";
 
@@ -10,15 +11,18 @@ const BillViewPage: React.FC = () => {
   const navigate = useNavigate();
   const { user, hapticFeedback, showError, showSuccess } = useTelegram();
   const { currentBill, fetchBill, isLoading } = useBillStore();
+  const { isAuthenticated } = useAuth();
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [userData, setUserData] = useState<any>(null);
 
   useEffect(() => {
-    if (id) {
+    // Загружаем счет только после аутентификации
+    if (id && isAuthenticated) {
+      console.log("🔐 User authenticated, fetching bill...");
       fetchBill(id);
     }
-  }, [id, fetchBill]);
+  }, [id, isAuthenticated, fetchBill]);
 
   // Загружаем данные пользователя из API
   useEffect(() => {

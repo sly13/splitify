@@ -8,6 +8,7 @@ import {
 import { useTelegram } from "./hooks/useTelegram";
 import { useAppStore } from "./stores/appStore";
 import { useTheme } from "./hooks/useTheme";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import Layout from "./components/Layout";
 import OnboardingPage from "./components/OnboardingPage";
 import MainApp from "./components/MainApp";
@@ -37,21 +38,37 @@ const StartAppHandler: FC = () => {
   return null;
 };
 
-const App: FC = () => {
+// Компонент для инициализации аутентификации
+const AuthInitializer: FC = () => {
   const { isReady } = useTelegram();
+  const { isAuthenticated, isLoading, authenticate } = useAuth();
+
+  useEffect(() => {
+    if (isReady && !isAuthenticated && !isLoading) {
+      authenticate().catch(error => {
+        console.error("Failed to authenticate:", error);
+      });
+    }
+  }, [isReady, isAuthenticated, isLoading, authenticate]);
+
+  if (!isReady || isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner"></div>
+        <p>{!isReady ? "Инициализация..." : "Аутентификация..."}</p>
+      </div>
+    );
+  }
+
+  return <AppContent />;
+};
+
+// Основной контент приложения
+const AppContent: FC = () => {
   const { hasSeenOnboarding } = useAppStore();
 
   // Инициализируем тему
   useTheme();
-
-  if (!isReady) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner"></div>
-        <p>Инициализация...</p>
-      </div>
-    );
-  }
 
   return (
     <Router>
@@ -70,6 +87,15 @@ const App: FC = () => {
         </Route>
       </Routes>
     </Router>
+  );
+};
+
+// Главный компонент приложения
+const App: FC = () => {
+  return (
+    <AuthProvider>
+      <AuthInitializer />
+    </AuthProvider>
   );
 };
 

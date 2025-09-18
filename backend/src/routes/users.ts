@@ -3,21 +3,78 @@ import { prisma } from "../config/database";
 import { authMiddleware } from "../middleware/auth";
 
 export async function usersRoutes(fastify: FastifyInstance) {
+  // Эндпоинт для инициализации пользователя (создание если не существует)
+  fastify.post("/api/user/init", async (request, reply) => {
+    try {
+      const testMode = request.headers["x-test-mode"] === "true";
+      
+      if (testMode) {
+        // В тестовом режиме создаем тестового пользователя
+        const testUser = await prisma.user.upsert({
+          where: {
+            telegramUserId: "123456789",
+          },
+          update: {},
+          create: {
+            telegramUserId: "123456789",
+            username: "test",
+            firstName: "Тест",
+          },
+        });
+
+        return reply.send({
+          success: true,
+          data: {
+            id: testUser.id,
+            firstName: testUser.firstName,
+            username: testUser.username,
+            telegramUserId: testUser.telegramUserId,
+            tonWalletAddress: testUser.tonWalletAddress,
+          },
+          message: "Тестовый пользователь инициализирован",
+        });
+      } else {
+        // В продакшн режиме используем authMiddleware
+        return reply.status(400).send({ 
+          error: "Используйте /api/me для инициализации пользователя" 
+        });
+      }
+    } catch (error) {
+      console.error("Ошибка при инициализации пользователя:", error);
+      return reply.status(500).send({ error: "Внутренняя ошибка сервера" });
+    }
+  });
   // Тестовый эндпоинт для получения информации о пользователе
   fastify.get("/api/me/test", async (request, reply) => {
     try {
-      // Возвращаем тестовые данные пользователя
-      const testUser = {
-        id: "cmfp9zikh0000c1d5jzjz9uhc",
-        firstName: "Тест",
-        username: "test",
-        telegramUserId: "123456789",
-        tonWalletAddress: null,
-      };
+      // Создаем или находим тестового пользователя в базе данных
+      const testUser = await prisma.user.upsert({
+        where: {
+          telegramUserId: "123456789",
+        },
+        update: {
+          // Обновляем данные если они изменились
+          username: "test",
+          firstName: "Тест",
+        },
+        create: {
+          telegramUserId: "123456789",
+          username: "test",
+          firstName: "Тест",
+        },
+      });
+
+      console.log("Test user created/found:", testUser.id);
 
       return reply.send({
         success: true,
-        data: testUser,
+        data: {
+          id: testUser.id,
+          firstName: testUser.firstName,
+          username: testUser.username,
+          telegramUserId: testUser.telegramUserId,
+          tonWalletAddress: testUser.tonWalletAddress,
+        },
       });
     } catch (error) {
       console.error(

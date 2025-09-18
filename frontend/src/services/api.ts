@@ -192,6 +192,18 @@ export const paymentApi = {
 
 // API методы для работы с пользователями
 export const userApi = {
+  // Инициализировать пользователя (создать если не существует)
+  initUser: (): Promise<any> => {
+    const testMode = isTestMode();
+    if (testMode) {
+      console.log("Initializing test user");
+      return api.post("/user/init");
+    } else {
+      // В продакшн режиме просто получаем информацию о пользователе
+      return userApi.getMe();
+    }
+  },
+
   // Получить краткую информацию о текущем пользователе
   getMe: (): Promise<any> => {
     const testMode = isTestMode();

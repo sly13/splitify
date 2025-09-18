@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useTelegram } from "../hooks/useTelegram";
+import { useAuth } from "../contexts/AuthContext";
 import { friendsApi } from "../services/api";
 
 interface Friend {
@@ -27,11 +28,15 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
     friendName: string;
   } | null>(null);
   const { hapticFeedback, showAlert, showSuccess } = useTelegram();
+  const { isAuthenticated } = useAuth();
 
-  // Загружаем список друзей
+  // Загружаем список друзей только после аутентификации
   useEffect(() => {
-    loadFriends();
-  }, []);
+    if (isAuthenticated) {
+      console.log("🔐 User authenticated, loading friends...");
+      loadFriends();
+    }
+  }, [isAuthenticated]);
 
   const loadFriends = async () => {
     try {

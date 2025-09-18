@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useTelegram } from "../hooks/useTelegram";
 import { useBillStore } from "../stores/billStore";
+import { useAuth } from "../contexts/AuthContext";
 import { BillStatus } from "../types/app";
 import type { Bill, Participant } from "../types/app";
 
@@ -10,6 +11,7 @@ const HomePage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user, hapticFeedback } = useTelegram();
   const { bills, isLoading, fetchBills, deleteBill } = useBillStore();
+  const { isAuthenticated, user: authUser } = useAuth();
   const [deleteModal, setDeleteModal] = useState<{
     billId: string;
     billTitle: string;
@@ -19,8 +21,12 @@ const HomePage: React.FC = () => {
   const currentTab = searchParams.get("tab") || "new";
 
   React.useEffect(() => {
-    fetchBills();
-  }, [fetchBills]);
+    // Загружаем счета только после аутентификации
+    if (isAuthenticated) {
+      console.log("🔐 User authenticated, fetching bills...");
+      fetchBills();
+    }
+  }, [isAuthenticated, fetchBills]);
 
   // Очищаем URL параметры если нет валидного таба
   React.useEffect(() => {
@@ -120,16 +126,42 @@ const HomePage: React.FC = () => {
       <div className="header">
         <h1>💰 Crypto Split Bill</h1>
         <p>Привет, {user?.first_name}! 👋</p>
-        
+
         {/* Информация о сервере */}
         <div className="server-info">
           <details>
             <summary>🔧 Информация о сервере</summary>
             <div className="server-details">
-              <p><strong>API URL:</strong> {import.meta.env.VITE_API_BASE_URL || 'Не задан'}</p>
-              <p><strong>Socket URL:</strong> {import.meta.env.VITE_SOCKET_URL || 'Не задан'}</p>
-              <p><strong>Режим:</strong> {import.meta.env.DEV ? 'Разработка' : 'Продакшн'}</p>
-              <p><strong>Тестовый режим:</strong> {import.meta.env.VITE_TEST_MODE === 'true' ? 'Включен' : 'Выключен'}</p>
+              <p>
+                <strong>API URL:</strong>{" "}
+                {import.meta.env.VITE_API_BASE_URL || "Не задан"}
+              </p>
+              <p>
+                <strong>Socket URL:</strong>{" "}
+                {import.meta.env.VITE_SOCKET_URL || "Не задан"}
+              </p>
+              <p>
+                <strong>Режим:</strong>{" "}
+                {import.meta.env.DEV ? "Разработка" : "Продакшн"}
+              </p>
+              <p>
+                <strong>Тестовый режим:</strong>{" "}
+                {import.meta.env.VITE_TEST_MODE === "true"
+                  ? "Включен"
+                  : "Выключен"}
+              </p>
+              <p>
+                <strong>Аутентификация:</strong>{" "}
+                {isAuthenticated
+                  ? "✅ Аутентифицирован"
+                  : "❌ Не аутентифицирован"}
+              </p>
+              {authUser && (
+                <p>
+                  <strong>Пользователь:</strong> {authUser.firstName} (ID:{" "}
+                  {authUser.id})
+                </p>
+              )}
             </div>
           </details>
         </div>
