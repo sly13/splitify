@@ -120,6 +120,19 @@ const HomePage: React.FC = () => {
       <div className="header">
         <h1>💰 Crypto Split Bill</h1>
         <p>Привет, {user?.first_name}! 👋</p>
+        
+        {/* Информация о сервере */}
+        <div className="server-info">
+          <details>
+            <summary>🔧 Информация о сервере</summary>
+            <div className="server-details">
+              <p><strong>API URL:</strong> {import.meta.env.VITE_API_BASE_URL || 'Не задан'}</p>
+              <p><strong>Socket URL:</strong> {import.meta.env.VITE_SOCKET_URL || 'Не задан'}</p>
+              <p><strong>Режим:</strong> {import.meta.env.DEV ? 'Разработка' : 'Продакшн'}</p>
+              <p><strong>Тестовый режим:</strong> {import.meta.env.VITE_TEST_MODE === 'true' ? 'Включен' : 'Выключен'}</p>
+            </div>
+          </details>
+        </div>
       </div>
 
       <div className="actions">

@@ -201,6 +201,49 @@
   color: var(--tg-theme-text-color);
 }
 
+/* Стили для информации о сервере */
+.server-info {
+  margin-top: 16px;
+  text-align: left;
+}
+
+.server-info details {
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.server-info summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color);
+  padding: 4px 0;
+}
+
+.server-info summary:hover {
+  color: var(--tg-theme-link-color);
+}
+
+.server-details {
+  margin-top: 8px;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.server-details p {
+  margin: 4px 0;
+  color: var(--tg-theme-text-color);
+}
+
+.server-details strong {
+  color: var(--tg-theme-link-color);
+}
+
 .header p {
   font-size: 16px;
   color: var(--tg-theme-hint-color);
