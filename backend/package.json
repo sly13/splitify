@@ -1,0 +1,48 @@
+{
+  "name": "crypto-split-bill-backend",
+  "version": "1.0.0",
+  "description": "Backend API for Crypto Split Bill application",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:migrate": "prisma migrate dev",
+    "db:studio": "prisma studio",
+    "db:init": "tsx scripts/init-db.ts",
+    "db:reset": "prisma migrate reset",
+    "test:user": "tsx scripts/create-test-user.ts",
+    "create:admin": "tsx scripts/create-admin.ts",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "^8.4.0",
+    "@fastify/websocket": "^8.3.1",
+    "@prisma/client": "^5.7.1",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.2",
+    "decimal.js": "^10.4.3",
+    "fastify": "^4.24.3",
+    "jsonwebtoken": "^9.0.2",
+    "zod": "^4.1.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "prisma": "^5.7.1",
+    "tsx": "^4.6.2",
+    "typescript": "^5.3.3"
+  },
+  "keywords": [
+    "fastify",
+    "postgresql",
+    "prisma",
+    "telegram",
+    "crypto",
+    "split-bill"
+  ],
+  "author": "",
+  "license": "MIT"
+}

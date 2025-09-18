@@ -1,0 +1,88 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: crypto_split_bill_db
+    environment:
+      POSTGRES_DB: crypto_split_bill
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "4052:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    image: node:20-bookworm-slim
+    container_name: crypto_split_bill_backend
+    working_dir: /app
+    command: sh -c "apt-get update -y && apt-get install -y openssl ca-certificates && npm install && npm run db:generate && npm run dev"
+    env_file:
+      - ./backend/.env
+    environment:
+      # Переопределим DATABASE_URL для доступа к контейнеру БД
+      DATABASE_URL: postgres://postgres:postgres@postgres:5432/crypto_split_bill
+      NODE_ENV: development
+      PORT: 3001
+      HOST: 0.0.0.0
+      FRONTEND_URL: http://localhost:4040
+      TEST_MODE: "true"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "4041:3001"
+
+  frontend:
+    image: node:20-bookworm-slim
+    container_name: crypto_split_bill_frontend
+    working_dir: /app
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      NODE_ENV: development
+      VITE_API_BASE: http://localhost:4041/api
+      VITE_TEST_MODE: "true"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "4040:5173"
+    depends_on:
+      - backend
+
+  admin:
+    build:
+      context: ./admin
+      dockerfile: Dockerfile
+    container_name: crypto_split_bill_admin
+    environment:
+      VITE_API_URL: http://localhost:4041
+    ports:
+      - "4042:80"
+    depends_on:
+      - backend
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: crypto_split_bill_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - postgres
+    profiles:
+      - admin
+
+volumes:
+  postgres_data:

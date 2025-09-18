@@ -1,0 +1,89 @@
+### Примеры запросов к API
+
+### 1. Проверка здоровья сервера
+GET http://localhost:3001/health
+
+### 2. Создание счета
+POST http://localhost:3001/api/bills
+Content-Type: application/json
+X-Telegram-Init-Data: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%2C%22username%22%3A%22john_doe%22%7D&auth_date=1640995200&hash=abc123...
+
+{
+  "title": "Обед в ресторане",
+  "totalAmount": "100.50",
+  "currency": "USDT",
+  "splitType": "equal",
+  "participants": [
+    {
+      "telegramUserId": "123456789",
+      "name": "Иван",
+      "shareAmount": "50.25"
+    },
+    {
+      "telegramUserId": "987654321",
+      "name": "Мария", 
+      "shareAmount": "50.25"
+    }
+  ]
+}
+
+### 3. Получение деталей счета
+GET http://localhost:3001/api/bills/bill_id_here
+X-Telegram-Init-Data: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%2C%22username%22%3A%22john_doe%22%7D&auth_date=1640995200&hash=abc123...
+
+### 4. Создание платежного намерения
+POST http://localhost:3001/api/payments/intent
+Content-Type: application/json
+X-Telegram-Init-Data: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%2C%22username%22%3A%22john_doe%22%7D&auth_date=1640995200&hash=abc123...
+
+{
+  "billId": "bill_id_here"
+}
+
+### 5. Webhook для обновления платежа (TON)
+POST http://localhost:3001/api/payments/webhook/TON
+Content-Type: application/json
+
+{
+  "externalId": "ext_1640995200_abc123def",
+  "status": "confirmed"
+}
+
+### 6. Webhook для обновления платежа (USDT)
+POST http://localhost:3001/api/payments/webhook/USDT
+Content-Type: application/json
+
+{
+  "externalId": "ext_1640995200_xyz789ghi",
+  "status": "failed"
+}
+
+### 7. Закрытие счета
+POST http://localhost:3001/api/bills/bill_id_here/close
+X-Telegram-Init-Data: user=%7B%22id%22%3A123456789%2C%22first_name%22%3A%22John%22%2C%22username%22%3A%22john_doe%22%7D&auth_date=1640995200&hash=abc123...
+
+### WebSocket подключение
+# Подключение к WebSocket для получения уведомлений
+# ws://localhost:3001/ws/bill_id_here
+
+### Пример WebSocket сообщений:
+# Ping для поддержания соединения
+{
+  "type": "ping"
+}
+
+# Ответ сервера
+{
+  "type": "pong"
+}
+
+# Уведомление об обновлении платежа
+{
+  "type": "payment.updated",
+  "data": {
+    "paymentId": "payment_id",
+    "billId": "bill_id",
+    "status": "confirmed",
+    "participantId": "participant_id"
+  }
+}

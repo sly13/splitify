@@ -1,0 +1,96 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  telegramUserId  String   @unique
+  username        String?
+  firstName       String?
+  createdAt       DateTime @default(now())
+  billsCreated    Bill[]   @relation("BillCreator")
+  participants    BillParticipant[]
+  friends         Friend[] @relation("FriendOwner")
+
+  @@map("users")
+}
+
+model Friend {
+  id                String   @id @default(cuid())
+  ownerId           String
+  owner             User     @relation("FriendOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  name              String
+  telegramUsername  String?  // @username в Telegram
+  telegramUserId    String?  // ID в Telegram (если известен)
+  createdAt         DateTime @default(now())
+  
+  @@unique([ownerId, telegramUsername]) // уникальность в рамках одного пользователя
+  @@map("friends")
+}
+
+model Bill {
+  id            String            @id @default(cuid())
+  title         String
+  currency      String            // "USDT" | "TON"
+  totalAmount   Decimal           @db.Decimal(18,6)
+  splitType     String            // "equal" | "custom"
+  creatorId     String
+  creator       User              @relation("BillCreator", fields: [creatorId], references: [id])
+  participants  BillParticipant[]
+  status        String            // "open" | "closed"
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  @@map("bills")
+}
+
+model BillParticipant {
+  id                String   @id @default(cuid())
+  billId            String
+  bill              Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  userId            String?
+  user              User?    @relation(fields: [userId], references: [id])
+  telegramUserId    String?  // на случай гостя без регистрации
+  telegramUsername  String?  // @username для поиска пользователя
+  name              String
+  shareAmount       Decimal  @db.Decimal(18,6)
+  paymentStatus     String   // "pending" | "paid" | "failed"
+  paymentId         String?
+  updatedAt         DateTime @updatedAt
+
+  @@map("bill_participants")
+}
+
+model Payment {
+  id            String   @id @default(cuid())
+  billId        String
+  participantId String
+  provider      String   // "TON" | "USDT"
+  status        String   // "created" | "pending" | "confirmed" | "failed"
+  amount        Decimal  @db.Decimal(18,6)
+  deeplink      String?
+  externalId    String?  // id у провайдера
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("payments")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String   // хешированный пароль
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
