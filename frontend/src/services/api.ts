@@ -1,5 +1,13 @@
 import axios, { type AxiosInstance, type AxiosResponse } from "axios";
 
+// Определяем тестовый режим с безопасным дефолтом в dev
+const isTestMode = (): boolean => {
+  const envFlag = import.meta.env.VITE_TEST_MODE as string | undefined;
+  // Если переменная не задана, в dev-режиме включаем тест по умолчанию
+  const fallback = import.meta.env.DEV ? "true" : "false";
+  return (envFlag ?? fallback) === "true";
+};
+
 // Базовый URL API (будет настроен в зависимости от окружения)
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4041/api";
@@ -18,7 +26,7 @@ api.interceptors.request.use(
   config => {
     // Получаем данные Telegram WebApp из window
     const tg = window.Telegram?.WebApp;
-    const testMode = import.meta.env.VITE_TEST_MODE === "true";
+    const testMode = isTestMode();
     console.log(
       "API Interceptor - Test mode:",
       testMode,
@@ -92,7 +100,7 @@ api.interceptors.response.use(
 export const billApi = {
   // Получить все счета пользователя
   getBills: (): Promise<any> => {
-    const testMode = import.meta.env.VITE_TEST_MODE === "true";
+    const testMode = isTestMode();
     const endpoint = testMode ? "/bills/test" : "/bills";
     console.log("Using endpoint:", endpoint);
     return api.get(endpoint);
@@ -100,7 +108,7 @@ export const billApi = {
 
   // Получить конкретный счет
   getBill: (billId: string): Promise<any> => {
-    const testMode = import.meta.env.VITE_TEST_MODE === "true";
+    const testMode = isTestMode();
     const endpoint = testMode ? `/bills/test/${billId}` : `/bills/${billId}`;
     console.log("Getting bill with endpoint:", endpoint);
     return api.get(endpoint);
@@ -108,7 +116,7 @@ export const billApi = {
 
   // Создать новый счет
   createBill: (data: any): Promise<any> => {
-    const testMode = import.meta.env.VITE_TEST_MODE === "true";
+    const testMode = isTestMode();
     const endpoint = testMode ? "/bills/test" : "/bills";
 
     // Преобразуем данные участников для API
@@ -180,7 +188,7 @@ export const userApi = {
 export const friendsApi = {
   // Получить список друзей
   getFriends: (): Promise<any> => {
-    const testMode = import.meta.env.VITE_TEST_MODE === "true";
+    const testMode = isTestMode();
     const endpoint = testMode ? "/friends/test" : "/friends";
     console.log("Using friends endpoint:", endpoint);
     return api.get(endpoint);

@@ -1455,3 +1455,180 @@
 .app.dark .empty-icon {
   opacity: 0.6;
 }
+
+/* Friends Page */
+.friends-page {
+  padding: 0;
+}
+
+.friends-section h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: var(--tg-theme-text-color);
+}
+
+.friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.friend-card {
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: opacity 0.2s, transform 0.1s;
+}
+
+.friend-card:hover {
+  opacity: 0.9;
+}
+
+.friend-card:active {
+  opacity: 0.7;
+  transform: scale(0.98);
+}
+
+.friend-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.friend-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--tg-theme-button-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--tg-theme-button-text-color);
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.friend-details {
+  flex: 1;
+}
+
+.friend-details h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  color: var(--tg-theme-text-color);
+}
+
+.friend-details p {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color);
+  margin: 0 0 4px 0;
+}
+
+.friend-date {
+  font-size: 12px;
+  color: var(--tg-theme-hint-color);
+}
+
+.friend-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-bill-btn {
+  background-color: var(--tg-theme-button-color);
+  color: var(--tg-theme-button-text-color);
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.create-bill-btn:hover {
+  opacity: 0.9;
+}
+
+.delete-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #ff5252;
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: opacity 0.2s;
+}
+
+.delete-btn:hover {
+  opacity: 0.9;
+}
+
+.friends-stats {
+  margin-top: 32px;
+}
+
+.friends-stats .stat-card {
+  background-color: var(--tg-theme-secondary-bg-color);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.friends-stats .stat-icon {
+  font-size: 32px;
+  opacity: 0.8;
+}
+
+.friends-stats .stat-content {
+  flex: 1;
+}
+
+.friends-stats .stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--tg-theme-text-color);
+  margin-bottom: 4px;
+}
+
+.friends-stats .stat-label {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color);
+}
+
+/* Dark theme for friends page */
+.app.dark .friend-card {
+  background: linear-gradient(135deg, #232e3c, #1a252f);
+  border: 1px solid #2a3441;
+}
+
+.app.dark .friends-stats .stat-card {
+  background: linear-gradient(135deg, #232e3c, #1a252f);
+  border: 1px solid #2a3441;
+}
+
+.app.dark .friend-avatar {
+  background: linear-gradient(135deg, #64b5f6, #42a5f5);
+}
+
+.app.dark .create-bill-btn {
+  background: linear-gradient(135deg, #64b5f6, #42a5f5);
+}
+
+.app.dark .delete-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+}

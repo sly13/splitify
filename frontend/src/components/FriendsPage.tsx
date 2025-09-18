@@ -117,24 +117,21 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
 
   if (loading) {
     return (
-      <div className="page-container">
-        <div className="page-header">
-          <h1 className="page-title">👥 Друзья</h1>
+      <div className="friends-page">
+        <div className="header">
+          <h1>👥 Друзья</h1>
+          <p>Управляйте списком друзей для быстрого создания счетов</p>
         </div>
-        <div className="flex items-center justify-center py-8">
-          <div className="text-gray-500">Загрузка...</div>
-        </div>
+        <div className="loading">Загрузка...</div>
       </div>
     );
   }
 
   return (
-    <div className="page-container">
-      <div className="page-header">
-        <h1 className="page-title">👥 Друзья</h1>
-        <p className="page-subtitle">
-          Управляйте списком друзей для быстрого создания счетов
-        </p>
+    <div className="friends-page">
+      <div className="header">
+        <h1>👥 Друзья</h1>
+        <p>Управляйте списком друзей для быстрого создания счетов</p>
       </div>
 
       {error && (
@@ -149,10 +146,10 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
 
       {/* Кнопка добавления друга */}
       {!showAddForm && (
-        <div className="mb-6">
+        <div className="actions">
           <button
             onClick={() => setShowAddForm(true)}
-            className="primary-button w-full"
+            className="primary-button"
           >
             + Добавить друга
           </button>
@@ -161,11 +158,11 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
 
       {/* Форма добавления друга */}
       {showAddForm && (
-        <div className="card mb-6">
-          <h3 className="card-title">Добавить нового друга</h3>
+        <div className="bill-form">
+          <h2>Добавить нового друга</h2>
 
           <div className="form-group">
-            <label className="form-label">Имя друга</label>
+            <label>Имя друга</label>
             <input
               type="text"
               value={newFriend.name}
@@ -173,15 +170,12 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
                 setNewFriend({ ...newFriend, name: e.target.value })
               }
               placeholder="Введите имя"
-              className="form-input"
               autoFocus
             />
           </div>
 
           <div className="form-group">
-            <label className="form-label">
-              Telegram username (опционально)
-            </label>
+            <label>Telegram username (опционально)</label>
             <input
               type="text"
               value={newFriend.telegramUsername}
@@ -193,12 +187,11 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
                 setNewFriend({ ...newFriend, telegramUsername: value });
               }}
               placeholder="@username"
-              className="form-input"
             />
           </div>
 
-          <div className="flex space-x-3">
-            <button onClick={handleAddFriend} className="primary-button flex-1">
+          <div className="form-actions">
+            <button onClick={handleAddFriend} className="primary-button">
               Добавить
             </button>
             <button
@@ -206,7 +199,7 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
                 setShowAddForm(false);
                 setNewFriend({ name: "", telegramUsername: "" });
               }}
-              className="secondary-button flex-1"
+              className="secondary-button"
             >
               Отмена
             </button>
@@ -216,59 +209,54 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
 
       {/* Список друзей */}
       {friends.length > 0 ? (
-        <div className="space-y-3">
-          {friends.map(friend => (
-            <div key={friend.id} className="card">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center text-white text-lg font-medium">
+        <div className="friends-section">
+          <h2>Мои друзья</h2>
+          <div className="friends-list">
+            {friends.map(friend => (
+              <div key={friend.id} className="friend-card">
+                <div className="friend-info">
+                  <div className="friend-avatar">
                     {friend.name.charAt(0).toUpperCase()}
                   </div>
-                  <div>
-                    <div className="font-medium text-gray-900">
-                      {friend.name}
-                    </div>
+                  <div className="friend-details">
+                    <h3>{friend.name}</h3>
                     {friend.telegramUsername && (
-                      <div className="text-sm text-gray-500">
-                        @{friend.telegramUsername}
-                      </div>
+                      <p>@{friend.telegramUsername}</p>
                     )}
-                    <div className="text-xs text-gray-400">
+                    <span className="friend-date">
                       Добавлен {formatDate(friend.createdAt)}
-                    </div>
+                    </span>
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
+                <div className="friend-actions">
                   {onCreateBill && (
                     <button
                       onClick={() => {
                         hapticFeedback.selection();
                         onCreateBill();
                       }}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      className="create-bill-btn"
                     >
                       Создать счет
                     </button>
                   )}
                   <button
                     onClick={() => handleDeleteFriend(friend.id)}
-                    className="text-red-500 hover:text-red-700 p-1"
+                    className="delete-btn"
                   >
                     ✕
                   </button>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
         <div className="empty-state">
           <div className="empty-icon">👥</div>
-          <h3 className="empty-title">Нет друзей</h3>
-          <p className="empty-description">
-            Добавьте друзей для быстрого создания счетов
-          </p>
+          <h3>Нет друзей</h3>
+          <p>Добавьте друзей для быстрого создания счетов</p>
           <button
             onClick={() => setShowAddForm(true)}
             className="primary-button"
@@ -280,15 +268,13 @@ export const FriendsPage: React.FC<FriendsPageProps> = ({ onCreateBill }) => {
 
       {/* Статистика */}
       {friends.length > 0 && (
-        <div className="card mt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-sm text-gray-500">Всего друзей</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {friends.length}
-              </div>
+        <div className="friends-stats">
+          <div className="stat-card">
+            <div className="stat-icon">👥</div>
+            <div className="stat-content">
+              <div className="stat-number">{friends.length}</div>
+              <div className="stat-label">Всего друзей</div>
             </div>
-            <div className="text-4xl">👥</div>
           </div>
         </div>
       )}
