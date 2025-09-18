@@ -16,7 +16,7 @@ export default defineConfig({
     "import.meta.env.VITE_API_URL": JSON.stringify(
       process.env.NODE_ENV === "production"
         ? "https://api-splitify.vadimsemenko.ru"
-        : "http://localhost:4041"
+        : "https://api-splitify.vadimsemenko.ru"
     ),
   },
 });
