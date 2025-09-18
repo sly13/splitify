@@ -67,6 +67,44 @@ export async function authMiddleware(
 
     if (!initData) {
       console.log("Auth middleware - No init data found");
+
+      // В продакшене без Telegram WebApp пытаемся получить данные из заголовков
+      if (process.env.NODE_ENV === "production") {
+        console.log(
+          "Auth middleware - Production mode without Telegram, checking headers for user data"
+        );
+
+        // Получаем данные пользователя из заголовков
+        const userId = request.headers["x-user-id"] as string;
+        const username = request.headers["x-username"] as string;
+        const firstName = request.headers["x-first-name"] as string;
+
+        if (userId && userId !== "production_temp_user") {
+          console.log("Auth middleware - Found user data in headers:", {
+            userId,
+            username,
+            firstName,
+          });
+
+          // Создаем или находим пользователя по данным из заголовков
+          const user = await prisma.user.upsert({
+            where: { telegramUserId: userId },
+            update: {
+              username: username || undefined,
+              firstName: firstName || undefined,
+            },
+            create: {
+              telegramUserId: userId,
+              username: username || "unknown",
+              firstName: firstName || "Unknown User",
+            },
+          });
+
+          request.user = user as AuthenticatedUser;
+          return; // Продолжаем без ошибки
+        }
+      }
+
       return reply.status(401).send({ error: "Missing Telegram init data" });
     }
 

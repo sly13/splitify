@@ -32,6 +32,51 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return;
     }
 
+    // Проверяем, есть ли Telegram WebApp
+    const hasTelegramWebApp = !!window.Telegram?.WebApp;
+    const isProduction = !import.meta.env.DEV;
+
+    if (isProduction && !hasTelegramWebApp) {
+      console.log(
+        "🚀 Production mode without Telegram WebApp - checking URL params for user data"
+      );
+
+      // Получаем данные пользователя из URL параметров
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get("user_id");
+      const username = urlParams.get("username");
+      const firstName = urlParams.get("first_name");
+
+      if (userId) {
+        console.log("🚀 Found user data in URL:", {
+          userId,
+          username,
+          firstName,
+        });
+
+        // Сохраняем данные в localStorage
+        localStorage.setItem("user_id", userId);
+        if (username) localStorage.setItem("username", username);
+        if (firstName) localStorage.setItem("first_name", firstName);
+
+        // Устанавливаем пользователя
+        setUser({
+          id: userId,
+          firstName: firstName || "Unknown User",
+          username: username || "unknown",
+          telegramUserId: userId,
+        });
+
+        setIsAuthenticated(true);
+        return;
+      }
+
+      // Если данных нет, показываем ошибку
+      console.error("❌ No user data found in URL parameters");
+      setIsAuthenticated(false);
+      return;
+    }
+
     console.log("🔐 Starting authentication process...");
     setIsLoading(true);
     try {

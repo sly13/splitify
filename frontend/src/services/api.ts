@@ -74,6 +74,26 @@ api.interceptors.request.use(
       config.headers.set("x-user-id", "123456789");
       config.headers.set("x-telegram-init-data", "test_init_data");
       config.headers.set("X-Telegram-Init-Data", "test_init_data");
+    } else if (process.env.NODE_ENV === "production") {
+      // В продакшене без Telegram WebApp добавляем данные пользователя из URL или localStorage
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId =
+        urlParams.get("user_id") || localStorage.getItem("user_id");
+      const username =
+        urlParams.get("username") || localStorage.getItem("username");
+      const firstName =
+        urlParams.get("first_name") || localStorage.getItem("first_name");
+
+      if (userId) {
+        console.log("🚀 Production mode - sending user data in headers:", {
+          userId,
+          username,
+          firstName,
+        });
+        config.headers.set("x-user-id", userId);
+        if (username) config.headers.set("x-username", username);
+        if (firstName) config.headers.set("x-first-name", firstName);
+      }
     }
 
     return config;

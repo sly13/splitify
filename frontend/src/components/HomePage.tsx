@@ -157,10 +157,20 @@ const HomePage: React.FC = () => {
                   : "❌ Не аутентифицирован"}
               </p>
               {authUser && (
-                <p>
-                  <strong>Пользователь:</strong> {authUser.firstName} (ID:{" "}
-                  {authUser.id})
-                </p>
+                <>
+                  <p>
+                    <strong>Пользователь:</strong> {authUser.firstName || authUser.username || "Неизвестно"}
+                  </p>
+                  <p>
+                    <strong>Username:</strong> {authUser.username || "Не задан"}
+                  </p>
+                  <p>
+                    <strong>ID:</strong> {authUser.id}
+                  </p>
+                  <p>
+                    <strong>Telegram ID:</strong> {authUser.telegramUserId || "Не задан"}
+                  </p>
+                </>
               )}
             </div>
           </details>
