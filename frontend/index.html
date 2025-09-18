@@ -5,7 +5,7 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="theme-color" content="#2481cc" />
@@ -22,17 +22,44 @@
         font-size: 16px !important;
       }
 
-      /* Telegram WebApp viewport */
-      body {
+      /* Telegram WebApp viewport - полноэкранный режим */
+      html, body {
         margin: 0;
         padding: 0;
-        overflow-x: hidden;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
         -webkit-overflow-scrolling: touch;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
       }
 
       #root {
-        min-height: 100vh;
-        width: 100%;
+        height: 100vh;
+        width: 100vw;
+        overflow-y: auto;
+        overflow-x: hidden;
+        position: relative;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      /* Убираем стандартные элементы браузера */
+      body {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+      }
+
+      /* Разрешаем выделение текста в input полях */
+      input, textarea {
+        -webkit-user-select: text;
+        -moz-user-select: text;
+        -ms-user-select: text;
+        user-select: text;
       }
     </style>
   </head>

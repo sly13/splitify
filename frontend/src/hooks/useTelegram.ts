@@ -15,8 +15,13 @@ export const useTelegram = () => {
 
       // Инициализация WebApp
       tg.ready();
+      
+      // Настройка полноэкранного режима
       tg.expand();
-
+      
+      // Настраиваем цвет заголовка
+      tg.headerColor = '#2481cc';
+      
       // Получение данных пользователя
       if (tg.initDataUnsafe.user) {
         setUser(tg.initDataUnsafe.user);
