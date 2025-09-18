@@ -48,7 +48,7 @@ services:
       dockerfile: Dockerfile
     container_name: crypto_split_bill_admin
     environment:
-      VITE_API_URL: http://localhost:4041
+      VITE_API_URL: https://api-splitify.vadimsemenko.ru
     ports:
       - "4042:80"
     depends_on:
