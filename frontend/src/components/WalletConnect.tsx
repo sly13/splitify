@@ -27,11 +27,20 @@ const WalletConnect: React.FC<WalletConnectProps> = ({
     // Можно добавить логику при отключении кошелька
   };
 
+  // Закрываем модальное окно при клике на Connect Wallet
+  const handleConnectClick = () => {
+    // Небольшая задержка, чтобы пользователь видел начало процесса
+    setTimeout(() => {
+      onCancel?.();
+    }, 500);
+  };
+
   return (
     <div className={`wallet-connect ${className}`}>
       <TonWalletConnect
         onWalletConnected={handleWalletConnected}
         onWalletDisconnected={handleWalletDisconnected}
+        onConnectStart={handleConnectClick}
       />
 
       {onCancel && (

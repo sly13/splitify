@@ -10,11 +10,13 @@ import { userApi } from "../services/api";
 interface TonWalletConnectProps {
   onWalletConnected?: (address: string) => void;
   onWalletDisconnected?: () => void;
+  onConnectStart?: () => void;
 }
 
 const TonWalletContent: React.FC<TonWalletConnectProps> = ({
   onWalletConnected,
   onWalletDisconnected,
+  onConnectStart,
 }) => {
   const [tonConnectUI] = useTonConnectUI();
   const { webApp } = useTelegram();
@@ -57,7 +59,7 @@ const TonWalletContent: React.FC<TonWalletConnectProps> = ({
     return () => {
       unsubscribe();
     };
-  }, [tonConnectUI, onWalletConnected, onWalletDisconnected]);
+  }, [tonConnectUI, onWalletConnected, onWalletDisconnected, onConnectStart]);
 
   const saveWalletAddress = async (address: string) => {
     try {
@@ -136,7 +138,9 @@ const TonWalletContent: React.FC<TonWalletConnectProps> = ({
         ) : (
           <div className="wallet-disconnected">
             <p>Подключите TON кошелек</p>
-            <TonConnectButton />
+            <div onClick={onConnectStart}>
+              <TonConnectButton />
+            </div>
           </div>
         )}
       </div>
