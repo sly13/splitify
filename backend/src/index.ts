@@ -32,6 +32,7 @@ fastify.register(cors, {
       "https://ab710ea9a264.ngrok-free.app", // новый ngrok URL
       "https://splitify.vadimsemenko.ru",
       "https://web.telegram.org",
+      "https://admin-splitify.vadimsemenko.ru",
     ];
 
     // Разрешаем запросы без origin (например, мобильные приложения)
