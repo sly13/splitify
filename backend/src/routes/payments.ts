@@ -497,6 +497,72 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
       }
     }
   );
+
+  // Очистка конкретного платежа (для отладки)
+  fastify.delete("/api/payments/:paymentId", async (request, reply) => {
+    try {
+      const { paymentId } = request.params as { paymentId: string };
+
+      console.log(`🧹 Очищаем платеж ${paymentId}...`);
+
+      const payment = await prisma.payment.findUnique({
+        where: { id: paymentId },
+        include: {
+          participant: true,
+        },
+      });
+
+      if (!payment) {
+        console.log(`❌ Платеж ${paymentId} не найден`);
+        return reply.status(404).send({
+          success: false,
+          error: "Платеж не найден",
+        });
+      }
+
+      console.log(`📋 Найден платеж:`, {
+        id: payment.id,
+        status: payment.status,
+        amount: payment.amount.toString(),
+        participant: payment.participant.name,
+        createdAt: payment.createdAt,
+      });
+
+      // Обновляем статус участника
+      await prisma.billParticipant.update({
+        where: { id: payment.participantId },
+        data: {
+          paymentStatus: "pending",
+          paymentId: null,
+        },
+      });
+
+      // Удаляем платеж
+      await prisma.payment.delete({
+        where: { id: paymentId },
+      });
+
+      console.log(`✅ Платеж ${paymentId} успешно удален`);
+
+      return reply.send({
+        success: true,
+        message: `Платеж ${paymentId} успешно удален`,
+        deletedPayment: {
+          id: payment.id,
+          status: payment.status,
+          participant: payment.participant.name,
+          amount: payment.amount.toString(),
+        },
+      });
+    } catch (error) {
+      console.error("❌ Ошибка при удалении платежа:", error);
+      return reply.status(500).send({
+        success: false,
+        error: "Ошибка при удалении платежа",
+        details: error instanceof Error ? error.message : "Неизвестная ошибка",
+      });
+    }
+  });
 }
 
 // Вспомогательные функции для генерации платежных данных
@@ -551,69 +617,3 @@ function generatePaymentDeeplink(
 function generateExternalId(): string {
   return `ext_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
-
-// Очистка конкретного платежа (для отладки)
-fastify.delete("/api/payments/:paymentId", async (request, reply) => {
-  try {
-    const { paymentId } = request.params as { paymentId: string };
-
-    console.log(`🧹 Очищаем платеж ${paymentId}...`);
-
-    const payment = await prisma.payment.findUnique({
-      where: { id: paymentId },
-      include: {
-        participant: true,
-      },
-    });
-
-    if (!payment) {
-      console.log(`❌ Платеж ${paymentId} не найден`);
-      return reply.status(404).send({
-        success: false,
-        error: "Платеж не найден",
-      });
-    }
-
-    console.log(`📋 Найден платеж:`, {
-      id: payment.id,
-      status: payment.status,
-      amount: payment.amount.toString(),
-      participant: payment.participant.name,
-      createdAt: payment.createdAt,
-    });
-
-    // Обновляем статус участника
-    await prisma.billParticipant.update({
-      where: { id: payment.participantId },
-      data: {
-        paymentStatus: "pending",
-        paymentId: null,
-      },
-    });
-
-    // Удаляем платеж
-    await prisma.payment.delete({
-      where: { id: paymentId },
-    });
-
-    console.log(`✅ Платеж ${paymentId} успешно удален`);
-
-    return reply.send({
-      success: true,
-      message: `Платеж ${paymentId} успешно удален`,
-      deletedPayment: {
-        id: payment.id,
-        status: payment.status,
-        participant: payment.participant.name,
-        amount: payment.amount.toString(),
-      },
-    });
-  } catch (error) {
-    console.error("❌ Ошибка при удалении платежа:", error);
-    return reply.status(500).send({
-      success: false,
-      error: "Ошибка при удалении платежа",
-      details: error instanceof Error ? error.message : "Неизвестная ошибка",
-    });
-  }
-});
