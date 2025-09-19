@@ -3,8 +3,16 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTelegram } from "../hooks/useTelegram";
 import { useBillStore } from "../stores/billStore";
 import { useAuth } from "../contexts/AuthContext";
-import { ParticipantStatus, type Participant } from "../types/app";
+import { useAuthStore } from "../stores/authStore";
+import {
+  ParticipantStatus,
+  type Participant,
+  type PaymentIntent,
+  type User,
+} from "../types/app";
 import { userApi } from "../services/api";
+import { useWalletConnection } from "../hooks/useWalletConnection";
+import WalletConnectionModal from "./WalletConnectionModal";
 
 const BillViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,9 +21,15 @@ const BillViewPage: React.FC = () => {
     useTelegram();
   const { currentBill, fetchBill, isLoading } = useBillStore();
   const { isAuthenticated } = useAuth();
+  const authUser = useAuthStore(state => state.user);
 
   const [showShareModal, setShowShareModal] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [userData, setUserData] = useState<User | null>(null);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+
+  // Проверяем подключение кошелька
+  const { isConnected: isWalletConnected, walletAddress } =
+    useWalletConnection();
 
   // Настройка Telegram BackButton
   useEffect(() => {
@@ -81,8 +95,8 @@ const BillViewPage: React.FC = () => {
   }
 
   const paidAmount = (currentBill.participants || []).reduce((sum, p) => {
-    const isPaid = ((p as any).paymentStatus || p.status) === "paid";
-    const amount = parseFloat((p as any).shareAmount || p.amount || "0");
+    const isPaid = (p.paymentStatus || p.status) === "paid";
+    const amount = parseFloat(p.shareAmount || p.amount?.toString() || "0");
     return sum + (isPaid ? amount : 0);
   }, 0);
   const progressPercentage = (paidAmount / currentBill.totalAmount) * 100;
@@ -134,17 +148,27 @@ const BillViewPage: React.FC = () => {
 
     hapticFeedback.impact("medium");
 
+    // Проверяем подключение кошелька
+    if (!isWalletConnected) {
+      setShowWalletModal(true);
+      return;
+    }
+
     try {
-      // TODO: Создать платежную сессию
+      // Создаем платежную сессию
       const paymentIntent = await createPaymentIntent({
         billId: currentBill.id,
-        amount: currentUserParticipant.amount,
+        amount:
+          currentUserParticipant.shareAmount ||
+          currentUserParticipant.amount?.toString() ||
+          "0",
         currency: currentBill.currency,
       });
 
-      // Открыть платежную систему
+      // Открываем платежную систему
       await openPayment(paymentIntent);
-    } catch {
+    } catch (error) {
+      console.error("Payment error:", error);
       showError("Ошибка при создании платежа");
     }
   };
@@ -198,22 +222,92 @@ const BillViewPage: React.FC = () => {
     setShowShareModal(true);
   };
 
-  const createPaymentIntent = async (data: unknown) => {
-    // TODO: Реализовать API вызов для создания платежной сессии
-    console.log("Creating payment intent:", data);
-    return { id: "payment_123", url: "ton://transfer/..." };
+  const createPaymentIntent = async (data: {
+    billId: string;
+    amount: string;
+    currency: string;
+  }): Promise<PaymentIntent> => {
+    try {
+      const response = await fetch("/api/payments/intent", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          billId: data.billId,
+          amount: parseFloat(data.amount),
+          currency: data.currency,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create payment intent");
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      throw error;
+    }
   };
 
-  const openPayment = async (paymentIntent: unknown) => {
-    // TODO: Реализовать открытие платежной системы
-    console.log("Opening payment:", paymentIntent);
+  const openPayment = async (paymentIntent: PaymentIntent) => {
+    try {
+      if (paymentIntent.provider === "TON" && paymentIntent.deeplink) {
+        // Для TON используем DeepLink
+        const link = document.createElement("a");
+        link.href = paymentIntent.deeplink;
+        link.target = "_blank";
+        link.click();
+
+        showSuccess("Открываем кошелек TON для оплаты...");
+      } else {
+        showError("Платежная система недоступна");
+      }
+    } catch (error) {
+      console.error("Error opening payment:", error);
+      showError("Ошибка при открытии платежной системы");
+    }
+  };
+
+  const handleWalletConnected = (address: string) => {
+    console.log("Wallet connected:", address);
+    showSuccess("Кошелек подключен! Теперь вы можете совершить платеж.");
+    // После подключения кошелька можно автоматически попробовать оплату снова
+    setTimeout(() => {
+      handlePayShare();
+    }, 1000);
+  };
+
+  const handleShare = () => {
+    const tg = webApp;
+    const user = authUser || userData;
+
+    if (tg?.ready && user?.ref) {
+      const url = `https://t.me/share/url?url=https://t.me/cs_cases_app_bot/join?startapp=${user.ref}`;
+      tg.openTelegramLink(url);
+    } else {
+      showError("Функция поделиться недоступна");
+    }
   };
 
   return (
     <div className="bill-view-page">
       <div className="bill-header">
         <div className="bill-title">
-          <h1>{currentBill.title}</h1>
+          <div className="bill-title-row">
+            <h1>{currentBill.title}</h1>
+            {webApp?.ready && (authUser?.ref || userData?.ref) && (
+              <button
+                className="share-button"
+                onClick={handleShare}
+                title="Поделиться приложением"
+              >
+                📤 Поделиться
+              </button>
+            )}
+          </div>
           <p className="bill-description">{currentBill.description}</p>
         </div>
 
@@ -237,25 +331,41 @@ const BillViewPage: React.FC = () => {
           </div>
 
           {/* Адрес кошелька для всех участников */}
-          {(currentBill as any).creatorWalletAddress && (
+          {currentBill.creatorWalletAddress && (
             <div className="wallet-address-section">
               <div className="wallet-label">
                 💳 Адрес кошелька для перевода:
               </div>
               <div className="wallet-address">
-                {(currentBill as any).creatorWalletAddress}
+                {currentBill.creatorWalletAddress}
               </div>
-              <button
-                className="copy-address-button"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    (currentBill as any).creatorWalletAddress
-                  );
-                  showSuccess?.("Адрес скопирован в буфер обмена!");
-                }}
-              >
-                📋 Скопировать адрес
-              </button>
+              <div className="wallet-actions">
+                <button
+                  className="copy-address-button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      currentBill.creatorWalletAddress!
+                    );
+                    showSuccess?.("Адрес скопирован в буфер обмена!");
+                  }}
+                >
+                  📋 Скопировать адрес
+                </button>
+                <button
+                  className="open-wallet-button"
+                  onClick={() => {
+                    const walletAddress = currentBill.creatorWalletAddress!;
+                    const tonDeepLink = `ton://transfer/${walletAddress}`;
+                    const link = document.createElement("a");
+                    link.href = tonDeepLink;
+                    link.target = "_blank";
+                    link.click();
+                    showSuccess?.("Открываем кошелек TON...");
+                  }}
+                >
+                  ⚡ Открыть в кошельке
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -274,8 +384,8 @@ const BillViewPage: React.FC = () => {
               if (!a.isPayer && b.isPayer) return 1;
 
               // Если оба плательщики или оба не плательщики, сортируем по статусу оплаты
-              const aStatus = (a as any).paymentStatus || a.status;
-              const bStatus = (b as any).paymentStatus || b.status;
+              const aStatus = a.paymentStatus || a.status;
+              const bStatus = b.paymentStatus || b.status;
 
               // Если один оплатил, а другой нет - оплативший идет первым
               if (aStatus === "paid" && bStatus !== "paid") return -1;
@@ -330,20 +440,20 @@ const BillViewPage: React.FC = () => {
                   <div className="participant-status">
                     <span
                       className={`status-badge ${
-                        (participant as any).paymentStatus || participant.status
+                        participant.paymentStatus || participant.status
                       }`}
                     >
-                      {((participant as any).paymentStatus ||
-                        participant.status) === "pending" &&
+                      {(participant.paymentStatus || participant.status) ===
+                        "pending" &&
                         !participant.isPayer &&
                         "Ожидает"}
-                      {((participant as any).paymentStatus ||
-                        participant.status) === "confirmed" && "Подтверждено"}
-                      {((participant as any).paymentStatus ||
-                        participant.status) === "paid" && "Оплачено"}
+                      {(participant.paymentStatus || participant.status) ===
+                        "confirmed" && "Подтверждено"}
+                      {(participant.paymentStatus || participant.status) ===
+                        "paid" && "Оплачено"}
                     </span>
-                    {((participant as any).paymentStatus ||
-                      participant.status) === "paid" && (
+                    {(participant.paymentStatus || participant.status) ===
+                      "paid" && (
                       <div className="payment-time">
                         {new Date(
                           participant.joinedAt || ""
@@ -357,7 +467,7 @@ const BillViewPage: React.FC = () => {
                 )}
 
                 <div className="participant-amount">
-                  {(participant as any).shareAmount || participant.amount}{" "}
+                  {participant.shareAmount || participant.amount}{" "}
                   {currentBill.currency}
                 </div>
 
@@ -389,7 +499,7 @@ const BillViewPage: React.FC = () => {
       </div>
 
       {currentUserParticipant &&
-        ((currentUserParticipant as any).paymentStatus ||
+        (currentUserParticipant.paymentStatus ||
           currentUserParticipant.status) !== "paid" &&
         !currentUserParticipant.isPayer && (
           <div className="payment-section">
@@ -397,34 +507,80 @@ const BillViewPage: React.FC = () => {
               <div className="payment-info">
                 <h3>Ваша доля</h3>
                 <div className="payment-amount">
-                  {(currentUserParticipant as any).shareAmount ||
+                  {currentUserParticipant.shareAmount ||
                     currentUserParticipant.amount}{" "}
                   {currentBill.currency}
                 </div>
               </div>
 
               {/* Адрес кошелька для перевода */}
-              {(currentBill as any).creatorWalletAddress && (
+              {currentBill.creatorWalletAddress && (
                 <div className="wallet-address-section">
                   <div className="wallet-label">
                     💳 Адрес кошелька для перевода:
                   </div>
                   <div className="wallet-address">
-                    {(currentBill as any).creatorWalletAddress}
+                    {currentBill.creatorWalletAddress}
                   </div>
-                  <button
-                    className="copy-address-button"
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        (currentBill as any).creatorWalletAddress
-                      );
-                      showSuccess?.("Адрес скопирован в буфер обмена!");
-                    }}
-                  >
-                    📋 Скопировать адрес
-                  </button>
+                  <div className="wallet-actions">
+                    <button
+                      className="copy-address-button"
+                      onClick={() => {
+                        navigator.clipboard.writeText(
+                          currentBill.creatorWalletAddress!
+                        );
+                        showSuccess?.("Адрес скопирован в буфер обмена!");
+                      }}
+                    >
+                      📋 Скопировать адрес
+                    </button>
+                    <button
+                      className="open-wallet-button"
+                      onClick={() => {
+                        const walletAddress = currentBill.creatorWalletAddress!;
+                        const tonDeepLink = `ton://transfer/${walletAddress}`;
+                        const link = document.createElement("a");
+                        link.href = tonDeepLink;
+                        link.target = "_blank";
+                        link.click();
+                        showSuccess?.("Открываем кошелек TON...");
+                      }}
+                    >
+                      ⚡ Открыть в кошельке
+                    </button>
+                  </div>
                 </div>
               )}
+
+              {/* Статус подключения кошелька */}
+              <div className="wallet-status-section">
+                {isWalletConnected ? (
+                  <div className="wallet-status connected">
+                    <div className="status-icon">✅</div>
+                    <div className="status-text">
+                      <div className="status-label">Кошелек подключен</div>
+                      <div className="wallet-address-short">
+                        {walletAddress
+                          ? `${walletAddress.slice(
+                              0,
+                              6
+                            )}...${walletAddress.slice(-4)}`
+                          : "TON кошелек"}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="wallet-status disconnected">
+                    <div className="status-icon">⚠️</div>
+                    <div className="status-text">
+                      <div className="status-label">Кошелек не подключен</div>
+                      <div className="status-description">
+                        Для оплаты необходимо подключить кошелек TON
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
 
               <button className="pay-button" onClick={handlePayShare}>
                 💳 Оплатить долю
@@ -437,6 +593,14 @@ const BillViewPage: React.FC = () => {
         <ShareModal
           billId={currentBill.id}
           onClose={() => setShowShareModal(false)}
+        />
+      )}
+
+      {showWalletModal && (
+        <WalletConnectionModal
+          isOpen={showWalletModal}
+          onClose={() => setShowWalletModal(false)}
+          onWalletConnected={handleWalletConnected}
         />
       )}
     </div>

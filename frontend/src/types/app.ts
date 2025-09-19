@@ -5,6 +5,8 @@ export interface User {
   username?: string;
   photoUrl?: string;
   tonWalletAddress?: string; // Адрес кошелька TON
+  telegramUserId?: string; // ID в Telegram
+  ref?: string; // Реферальная ссылка пользователя
 }
 
 export interface Bill {
@@ -20,6 +22,7 @@ export interface Bill {
   participants: Participant[];
   payments?: Payment[];
   shareUrl?: string; // Ссылка для присоединения к счету
+  creatorWalletAddress?: string; // Адрес кошелька создателя
 }
 
 export interface Participant {
@@ -101,4 +104,11 @@ export interface PaymentRequest {
   billId: string;
   amount: number;
   currency: string;
+}
+
+export interface PaymentIntent {
+  paymentId: string;
+  provider: string;
+  deeplink: string;
+  expiresAt: string;
 }

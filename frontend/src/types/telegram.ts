@@ -76,6 +76,7 @@ export interface TelegramWebApp {
   expand: () => void;
   close: () => void;
   requestFullscreen?: () => void;
+  openTelegramLink: (url: string) => void;
   // Дополнительные методы (если доступны в будущем)
   selectContact?: () => Promise<{
     contact: {

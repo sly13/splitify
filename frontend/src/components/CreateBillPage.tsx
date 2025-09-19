@@ -91,17 +91,36 @@ const CreateBillPage: React.FC = () => {
   // Функция для обновления адреса кошелька из API
   const updateWalletAddressFromAPI = useCallback(async () => {
     try {
+      console.log("🔗 updateWalletAddressFromAPI: Getting user data from API");
       const response = await userApi.getMe();
+      console.log(
+        "🔗 updateWalletAddressFromAPI: API response:",
+        response.data
+      );
+
       if (response.data?.success && response.data?.data?.tonWalletAddress) {
         const walletAddress = response.data.data.tonWalletAddress;
+        console.log(
+          "🔗 updateWalletAddressFromAPI: Found wallet address:",
+          walletAddress
+        );
+
         setUserWalletAddress(walletAddress);
         setFormData(prev => ({
           ...prev,
           creatorWalletAddress: walletAddress,
         }));
+
+        console.log(
+          "🔗 updateWalletAddressFromAPI: Updated state with wallet address"
+        );
+      } else {
+        console.log(
+          "🔗 updateWalletAddressFromAPI: No wallet address found in API response"
+        );
       }
     } catch (error) {
-      console.log("Не удалось получить адрес кошелька из API:", error);
+      console.log("🔗 updateWalletAddressFromAPI: Error:", error);
     }
   }, []);
 
@@ -314,19 +333,33 @@ const CreateBillPage: React.FC = () => {
   }, []);
 
   const handleWalletConnected = useCallback((address: string) => {
+    console.log("🔗 handleWalletConnected called with address:", address);
+
     setUserWalletAddress(address);
     setFormData(prev => ({
       ...prev,
       creatorWalletAddress: address,
     }));
     setShowWalletConnect(false);
+
+    console.log("🔗 handleWalletConnected: Updated state and closed modal");
   }, []);
 
   const handleConnectWalletClick = useCallback(async () => {
+    console.log("🔗 handleConnectWalletClick called");
+    console.log("🔗 Current userWalletAddress:", userWalletAddress);
+
     // Сначала обновляем адрес кошелька из API
     await updateWalletAddressFromAPI();
+
+    console.log(
+      "🔗 After updateWalletAddressFromAPI, userWalletAddress:",
+      userWalletAddress
+    );
+    console.log("🔗 Setting showWalletConnect to true");
+
     setShowWalletConnect(true);
-  }, [updateWalletAddressFromAPI]);
+  }, [updateWalletAddressFromAPI, userWalletAddress]);
 
   // Функция для валидации всех полей
   const validateForm = (data: CreateBillData) => {
