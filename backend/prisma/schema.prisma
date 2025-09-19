@@ -47,6 +47,7 @@ model Bill {
   creatorId     String
   creator       User              @relation("BillCreator", fields: [creatorId], references: [id])
   participants  BillParticipant[]
+  payments      Payment[]
   status        String            // "open" | "closed"
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -55,34 +56,37 @@ model Bill {
 }
 
 model BillParticipant {
-  id                String   @id @default(cuid())
+  id                String    @id @default(cuid())
   billId            String
-  bill              Bill     @relation(fields: [billId], references: [id], onDelete: Cascade)
+  bill              Bill      @relation(fields: [billId], references: [id], onDelete: Cascade)
   userId            String?
-  user              User?    @relation(fields: [userId], references: [id])
-  telegramUserId    String?  // на случай гостя без регистрации
-  telegramUsername  String?  // @username для поиска пользователя
+  user              User?     @relation(fields: [userId], references: [id])
+  telegramUserId    String?   // на случай гостя без регистрации
+  telegramUsername  String?   // @username для поиска пользователя
   name              String
-  shareAmount       Decimal  @db.Decimal(18,6)
-  paymentStatus     String   // "pending" | "paid" | "failed"
+  shareAmount       Decimal   @db.Decimal(18,6)
+  paymentStatus     String    // "pending" | "paid" | "failed"
   paymentId         String?
-  isPayer           Boolean  @default(false) // отметка кто заплатил за весь счёт
-  updatedAt         DateTime @updatedAt
+  payments          Payment[]
+  isPayer           Boolean   @default(false) // отметка кто заплатил за весь счёт
+  updatedAt         DateTime  @updatedAt
 
   @@map("bill_participants")
 }
 
 model Payment {
-  id            String   @id @default(cuid())
+  id            String           @id @default(cuid())
   billId        String
+  bill          Bill             @relation(fields: [billId], references: [id], onDelete: Cascade)
   participantId String
-  provider      String   // "TON" | "USDT"
-  status        String   // "created" | "pending" | "confirmed" | "failed"
-  amount        Decimal  @db.Decimal(18,6)
+  participant   BillParticipant  @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  provider      String           // "TON" | "USDT"
+  status        String           // "created" | "pending" | "confirmed" | "failed"
+  amount        Decimal          @db.Decimal(18,6)
   deeplink      String?
-  externalId    String?  // id у провайдера
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  externalId    String?          // id у провайдера
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 
   @@map("payments")
 }

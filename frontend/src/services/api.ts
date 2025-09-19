@@ -14,7 +14,8 @@ const isTestMode = (): boolean => {
 // Базовый URL API (будет настроен в зависимости от окружения)
 const API_BASE_URL = import.meta.env.DEV
   ? "http://localhost:4041/api"
-  : import.meta.env.VITE_API_BASE_URL;
+  : import.meta.env.VITE_API_BASE_URL ||
+    "https://api-splitify.vadimsemenko.ru/api";
 
 console.log("🔧 API Configuration:", {
   API_BASE_URL,

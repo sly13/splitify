@@ -10,7 +10,7 @@ class SocketService {
     }
 
     const serverUrl =
-      import.meta.env.VITE_SOCKET_URL || "http://localhost:3001";
+      import.meta.env.VITE_SOCKET_URL || "https://api-splitify.vadimsemenko.ru";
 
     this.socket = io(serverUrl, {
       auth: {
