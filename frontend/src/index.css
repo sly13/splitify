@@ -909,6 +909,20 @@ select:disabled {
   background: var(--tg-theme-bg-color, #ffffff);
 }
 
+/* Мобильные стили для BillViewPage */
+@media (max-width: 480px) {
+  .bill-view-page {
+    padding: 16px;
+  }
+}
+
+/* Очень маленькие экраны для BillViewPage */
+@media (max-width: 360px) {
+  .bill-view-page {
+    padding: 12px;
+  }
+}
+
 .bill-header {
   background: var(--tg-theme-secondary-bg-color, #f8f9fa);
   border-radius: 8px;
@@ -917,11 +931,45 @@ select:disabled {
   border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
+/* Мобильные стили для заголовка счета */
+@media (max-width: 480px) {
+  .bill-header {
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+  }
+}
+
+/* Очень маленькие экраны для заголовка счета */
+@media (max-width: 360px) {
+  .bill-header {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 4px;
+  }
+}
+
 .bill-title h1 {
   margin: 0 0 8px 0;
   font-size: 20px;
   font-weight: 500;
   color: var(--tg-theme-text-color, #000000);
+}
+
+/* Мобильные стили для заголовка счета */
+@media (max-width: 480px) {
+  .bill-title h1 {
+    font-size: 18px;
+    margin-bottom: 6px;
+  }
+}
+
+/* Очень маленькие экраны для заголовка счета */
+@media (max-width: 360px) {
+  .bill-title h1 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
 }
 
 .bill-description {
@@ -2625,5 +2673,543 @@ select:disabled {
 
   .nav-label {
     font-size: 10px;
+  }
+}
+
+/* Стили для блока с адресом кошелька */
+.wallet-address-section {
+  margin: 16px 0;
+  padding: 16px;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 12px;
+  border: 1px solid var(--tg-theme-section-separator-color, #e9ecef);
+}
+
+.wallet-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000000);
+  margin-bottom: 8px;
+}
+
+.wallet-address {
+  font-family: "Courier New", monospace;
+  font-size: 12px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  word-break: break-all;
+  color: var(--tg-theme-text-color, #000000);
+  line-height: 1.4;
+}
+
+.copy-address-button {
+  width: 100%;
+  background: var(--tg-theme-button-color, #2481cc);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.copy-address-button:hover {
+  background: var(--tg-theme-button-color, #1a6bb3);
+  transform: translateY(-1px);
+}
+
+.copy-address-button:active {
+  transform: translateY(0);
+}
+
+/* Мобильные стили для блока с адресом кошелька */
+@media (max-width: 480px) {
+  .wallet-address-section {
+    margin: 12px 0;
+    padding: 12px;
+  }
+
+  .wallet-label {
+    font-size: 13px;
+    margin-bottom: 6px;
+  }
+
+  .wallet-address {
+    font-size: 10px;
+    padding: 8px;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .copy-address-button {
+    padding: 10px 14px;
+    font-size: 13px;
+  }
+}
+
+/* Очень маленькие экраны для блока с адресом кошелька */
+@media (max-width: 360px) {
+  .wallet-address-section {
+    margin: 8px 0;
+    padding: 10px;
+  }
+
+  .wallet-label {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+
+  .wallet-address {
+    font-size: 9px;
+    padding: 6px;
+    margin-bottom: 8px;
+  }
+
+  .copy-address-button {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Стили для кнопки оплаты */
+.pay-button {
+  width: 100%;
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  margin-top: 16px;
+}
+
+.pay-button:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.pay-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+/* Мобильные стили для кнопки оплаты */
+@media (max-width: 480px) {
+  .pay-button {
+    padding: 14px 18px;
+    font-size: 15px;
+    margin-top: 12px;
+    border-radius: 10px;
+  }
+}
+
+/* Очень маленькие экраны для кнопки оплаты */
+@media (max-width: 360px) {
+  .pay-button {
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-top: 10px;
+    border-radius: 8px;
+  }
+}
+
+/* Стили для секции платежей */
+.payment-section {
+  margin: 20px 0;
+}
+
+.payment-card {
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid var(--tg-theme-section-separator-color, #e9ecef);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.payment-info {
+  margin-bottom: 16px;
+}
+
+.payment-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000000);
+}
+
+.payment-amount {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--tg-theme-button-color, #2481cc);
+  margin-bottom: 16px;
+}
+
+/* Мобильные стили для секции платежей */
+@media (max-width: 480px) {
+  .payment-section {
+    margin: 16px 0;
+  }
+
+  .payment-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .payment-info h3 {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+
+  .payment-amount {
+    font-size: 20px;
+    margin-bottom: 12px;
+  }
+}
+
+/* Очень маленькие экраны для секции платежей */
+@media (max-width: 360px) {
+  .payment-section {
+    margin: 12px 0;
+  }
+
+  .payment-card {
+    padding: 12px;
+    border-radius: 10px;
+  }
+
+  .payment-info h3 {
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+
+  .payment-amount {
+    font-size: 18px;
+    margin-bottom: 10px;
+  }
+}
+
+/* Стили для участников в BillViewPage */
+.participants-section {
+  margin: 20px 0;
+}
+
+.section-header {
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000000);
+}
+
+.participants-table {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.participant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid var(--tg-theme-section-separator-color, #e9ecef);
+  transition: all 0.2s ease;
+}
+
+.participant-row:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Специальный стиль для плательщика */
+.participant-row.payer-row {
+  background: linear-gradient(
+    135deg,
+    rgba(16, 185, 129, 0.1),
+    rgba(5, 150, 105, 0.05)
+  );
+  border: 2px solid rgba(16, 185, 129, 0.3);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+}
+
+.participant-row.payer-row:hover {
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+}
+
+.participant-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.participant-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--tg-theme-button-color, #2481cc);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.participant-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+/* Специальный стиль для аватара плательщика */
+.payer-row .participant-avatar {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.participant-details {
+  flex: 1;
+}
+
+.participant-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000000);
+  margin-bottom: 2px;
+}
+
+/* Специальный стиль для имени плательщика */
+.payer-row .participant-name {
+  color: #059669;
+  font-weight: 700;
+}
+
+.participant-username {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color, #6c757d);
+}
+
+.participant-amount {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000000);
+  margin: 0 16px;
+  text-align: right;
+  min-width: 80px;
+}
+
+/* Специальный стиль для суммы плательщика */
+.payer-row .participant-amount {
+  color: #059669;
+  font-weight: 700;
+}
+
+.participant-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.status-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.status-badge.paid {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+}
+
+.status-badge.confirmed {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+.status-badge.pending {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+}
+
+.payer-badge {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+}
+
+/* Специальный стиль для бейджа плательщика */
+.payer-row .payer-badge {
+  background: linear-gradient(135deg, #059669, #047857);
+  box-shadow: 0 3px 6px rgba(16, 185, 129, 0.4);
+  font-weight: 600;
+}
+
+.payment-time {
+  font-size: 11px;
+  color: var(--tg-theme-hint-color, #6c757d);
+  font-style: italic;
+}
+
+/* Мобильные стили для участников */
+@media (max-width: 480px) {
+  .participants-section {
+    margin: 12px 0;
+  }
+
+  .section-header {
+    margin-bottom: 12px;
+  }
+
+  .section-header h2 {
+    font-size: 18px;
+  }
+
+  .participants-table {
+    gap: 8px;
+  }
+
+  .participant-row {
+    padding: 12px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .participant-info {
+    gap: 10px;
+  }
+
+  .participant-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+
+  .participant-name {
+    font-size: 14px;
+    margin-bottom: 1px;
+  }
+
+  .participant-username {
+    font-size: 12px;
+  }
+
+  .participant-amount {
+    font-size: 14px;
+    margin: 0;
+    text-align: left;
+    min-width: auto;
+    order: 2;
+  }
+
+  .participant-status {
+    align-items: flex-start;
+    gap: 6px;
+    order: 3;
+  }
+
+  .status-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .payer-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .payment-time {
+    font-size: 10px;
+  }
+
+  /* Специальные стили для плательщика на мобильных */
+  .payer-row .participant-name {
+    font-size: 15px;
+  }
+
+  .payer-row .participant-amount {
+    font-size: 15px;
+  }
+}
+
+/* Очень маленькие экраны */
+@media (max-width: 360px) {
+  .participants-section {
+    margin: 8px 0;
+  }
+
+  .section-header h2 {
+    font-size: 16px;
+  }
+
+  .participant-row {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .participant-info {
+    gap: 8px;
+  }
+
+  .participant-avatar {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .participant-name {
+    font-size: 13px;
+  }
+
+  .participant-username {
+    font-size: 11px;
+  }
+
+  .participant-amount {
+    font-size: 13px;
+  }
+
+  .status-badge {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+
+  .payer-badge {
+    font-size: 9px;
+    padding: 2px 4px;
+  }
+
+  /* Специальные стили для плательщика на очень маленьких экранах */
+  .payer-row .participant-name {
+    font-size: 14px;
+  }
+
+  .payer-row .participant-amount {
+    font-size: 14px;
   }
 }

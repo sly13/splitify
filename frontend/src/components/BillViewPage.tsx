@@ -250,6 +250,29 @@ const BillViewPage: React.FC = () => {
               {currentBill.totalAmount} {currentBill.currency}
             </div>
           </div>
+
+          {/* Адрес кошелька для всех участников */}
+          {(currentBill as any).creatorWalletAddress && (
+            <div className="wallet-address-section">
+              <div className="wallet-label">
+                💳 Адрес кошелька для перевода:
+              </div>
+              <div className="wallet-address">
+                {(currentBill as any).creatorWalletAddress}
+              </div>
+              <button
+                className="copy-address-button"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    (currentBill as any).creatorWalletAddress
+                  );
+                  showSuccess?.("Адрес скопирован в буфер обмена!");
+                }}
+              >
+                📋 Скопировать адрес
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -259,101 +282,128 @@ const BillViewPage: React.FC = () => {
         </div>
 
         <div className="participants-table">
-          {(currentBill.participants || []).map(participant => (
-            <div key={participant.id} className="participant-row">
-              <div className="participant-info">
-                <div className="participant-avatar">
-                  {participant.user?.photoUrl ? (
-                    <img
-                      src={participant.user.photoUrl}
-                      alt={participant.user.firstName}
-                    />
-                  ) : (
-                    <span>
-                      {participant.user?.firstName?.[0] || participant.name[0]}
-                    </span>
-                  )}
-                </div>
-                <div className="participant-details">
-                  <div className="participant-name">
-                    {participant.user
-                      ? `${participant.user.firstName} ${
-                          participant.user.lastName || ""
-                        }`
-                      : participant.name}
+          {(currentBill.participants || [])
+            .sort((a, b) => {
+              // Сначала плательщик (isPayer: true) всегда идет первым
+              if (a.isPayer && !b.isPayer) return -1;
+              if (!a.isPayer && b.isPayer) return 1;
+
+              // Если оба плательщики или оба не плательщики, сортируем по статусу оплаты
+              const aStatus = (a as any).paymentStatus || a.status;
+              const bStatus = (b as any).paymentStatus || b.status;
+
+              // Если один оплатил, а другой нет - оплативший идет первым
+              if (aStatus === "paid" && bStatus !== "paid") return -1;
+              if (aStatus !== "paid" && bStatus === "paid") return 1;
+
+              // Если оба в одном статусе - сортируем по имени
+              const aName = a.user?.firstName || a.name;
+              const bName = b.user?.firstName || b.name;
+              return aName.localeCompare(bName, "ru");
+            })
+            .map(participant => (
+              <div
+                key={participant.id}
+                className={`participant-row ${
+                  participant.isPayer ? "payer-row" : ""
+                }`}
+              >
+                <div className="participant-info">
+                  <div className="participant-avatar">
+                    {participant.user?.photoUrl ? (
+                      <img
+                        src={participant.user.photoUrl}
+                        alt={participant.user.firstName}
+                      />
+                    ) : (
+                      <span>
+                        {participant.user?.firstName?.[0] ||
+                          participant.name[0]}
+                      </span>
+                    )}
                   </div>
-                  {(participant.user?.username ||
-                    participant.telegramUsername) && (
-                    <div className="participant-username">
-                      @
-                      {participant.user?.username ||
-                        participant.telegramUsername}
+                  <div className="participant-details">
+                    <div className="participant-name">
+                      {participant.user
+                        ? `${participant.user.firstName} ${
+                            participant.user.lastName || ""
+                          }`
+                        : participant.name}
+                    </div>
+                    {(participant.user?.username ||
+                      participant.telegramUsername) && (
+                      <div className="participant-username">
+                        @
+                        {participant.user?.username ||
+                          participant.telegramUsername}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="participant-amount">
+                  {(participant as any).shareAmount || participant.amount}{" "}
+                  {currentBill.currency}
+                </div>
+
+                <div className="participant-status">
+                  <span
+                    className={`status-badge ${
+                      (participant as any).paymentStatus || participant.status
+                    }`}
+                  >
+                    {((participant as any).paymentStatus ||
+                      participant.status) === "pending" &&
+                      !participant.isPayer &&
+                      "Ожидает"}
+                    {((participant as any).paymentStatus ||
+                      participant.status) === "confirmed" && "Подтверждено"}
+                    {((participant as any).paymentStatus ||
+                      participant.status) === "paid" && "Оплачено"}
+                  </span>
+                  {participant.isPayer && (
+                    <span className="payer-badge">💳 Заплатил за всех</span>
+                  )}
+                  {((participant as any).paymentStatus ||
+                    participant.status) === "paid" && (
+                    <div className="payment-time">
+                      {new Date(
+                        participant.joinedAt || ""
+                      ).toLocaleDateString()}
                     </div>
                   )}
                 </div>
-              </div>
 
-              <div className="participant-amount">
-                {(participant as any).shareAmount || participant.amount}{" "}
-                {currentBill.currency}
+                <div className="participant-actions">
+                  {isCreator && (
+                    <button
+                      className={`mark-payer-button ${
+                        participant.isPayer ? "active" : ""
+                      }`}
+                      onClick={() =>
+                        handleMarkPayer(participant.id, !participant.isPayer)
+                      }
+                      title={
+                        participant.isPayer
+                          ? "Снять отметку плательщика"
+                          : "Отметить как плательщика"
+                      }
+                    >
+                      {participant.isPayer ? "✅" : "💳"}
+                    </button>
+                  )}
+                  {!participant.isPayer && (
+                    <button
+                      className="share-participant-button"
+                      onClick={() => handleShareParticipant(participant)}
+                      title="Поделиться с участником"
+                    >
+                      📤
+                    </button>
+                  )}
+                </div>
               </div>
-
-              <div className="participant-status">
-                <span
-                  className={`status-badge ${
-                    (participant as any).paymentStatus || participant.status
-                  }`}
-                >
-                  {((participant as any).paymentStatus ||
-                    participant.status) === "pending" &&
-                    !participant.isPayer &&
-                    "Ожидает"}
-                  {((participant as any).paymentStatus ||
-                    participant.status) === "confirmed" && "Подтверждено"}
-                  {((participant as any).paymentStatus ||
-                    participant.status) === "paid" && "Оплачено"}
-                </span>
-                {participant.isPayer && (
-                  <span className="payer-badge">💳 Заплатил за всех</span>
-                )}
-                {((participant as any).paymentStatus || participant.status) ===
-                  "paid" && (
-                  <div className="payment-time">
-                    {new Date(participant.joinedAt || "").toLocaleDateString()}
-                  </div>
-                )}
-              </div>
-
-              <div className="participant-actions">
-                {isCreator && (
-                  <button
-                    className={`mark-payer-button ${
-                      participant.isPayer ? "active" : ""
-                    }`}
-                    onClick={() =>
-                      handleMarkPayer(participant.id, !participant.isPayer)
-                    }
-                    title={
-                      participant.isPayer
-                        ? "Снять отметку плательщика"
-                        : "Отметить как плательщика"
-                    }
-                  >
-                    {participant.isPayer ? "✅" : "💳"}
-                  </button>
-                )}
-                {!participant.isPayer && (
-                  <button
-                    className="share-participant-button"
-                    onClick={() => handleShareParticipant(participant)}
-                    title="Поделиться с участником"
-                  >
-                    📤
-                  </button>
-                )}
-              </div>
-            </div>
-          ))}
+            ))}
         </div>
       </div>
 
@@ -371,6 +421,30 @@ const BillViewPage: React.FC = () => {
                   {currentBill.currency}
                 </div>
               </div>
+
+              {/* Адрес кошелька для перевода */}
+              {(currentBill as any).creatorWalletAddress && (
+                <div className="wallet-address-section">
+                  <div className="wallet-label">
+                    💳 Адрес кошелька для перевода:
+                  </div>
+                  <div className="wallet-address">
+                    {(currentBill as any).creatorWalletAddress}
+                  </div>
+                  <button
+                    className="copy-address-button"
+                    onClick={() => {
+                      navigator.clipboard.writeText(
+                        (currentBill as any).creatorWalletAddress
+                      );
+                      showSuccess?.("Адрес скопирован в буфер обмена!");
+                    }}
+                  >
+                    📋 Скопировать адрес
+                  </button>
+                </div>
+              )}
+
               <button className="pay-button" onClick={handlePayShare}>
                 💳 Оплатить долю
               </button>
