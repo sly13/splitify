@@ -43,7 +43,7 @@ const distributeAmountEqually = (
 
 const CreateBillPage: React.FC = () => {
   const navigate = useNavigate();
-  const { hapticFeedback, user } = useTelegram();
+  const { hapticFeedback, user, webApp } = useTelegram();
   const { createBill, isLoading } = useBillStore();
   const { toasts, showError, hideToast } = useToast();
 
@@ -68,6 +68,25 @@ const CreateBillPage: React.FC = () => {
     splitType: "equal" as "equal" | "custom",
     participantsCount: 0,
   });
+
+  // Настройка Telegram BackButton
+  useEffect(() => {
+    if (webApp?.BackButton) {
+      webApp.BackButton.show();
+      webApp.BackButton.onClick(() => {
+        navigate(-1);
+      });
+    }
+
+    return () => {
+      if (webApp?.BackButton) {
+        webApp.BackButton.hide();
+        webApp.BackButton.offClick(() => {
+          navigate(-1);
+        });
+      }
+    };
+  }, [webApp, navigate]);
 
   // Автоматически добавляем себя при загрузке пользователя
   useEffect(() => {

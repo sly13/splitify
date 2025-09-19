@@ -118,9 +118,9 @@ const TonWalletContent: React.FC<TonWalletConnectProps> = ({
         {isConnected && walletAddress ? (
           <div className="wallet-connected">
             <div className="wallet-info">
-              <div className="wallet-icon">💎</div>
+              <div className="wallet-icon">⚡</div>
               <div className="wallet-details">
-                <div className="wallet-label">Подключенный кошелек</div>
+                <div className="wallet-label">TON Кошелек подключен</div>
                 <div className="wallet-address">
                   {formatAddress(walletAddress)}
                 </div>
@@ -137,20 +137,20 @@ const TonWalletContent: React.FC<TonWalletConnectProps> = ({
           </div>
         ) : (
           <div className="wallet-disconnected">
-            <div className="wallet-icon-large">💎</div>
-            <p>Подключите кошелек для получения платежей</p>
+            <div className="wallet-icon-large">🚀</div>
+            <p>Подключите TON кошелек для быстрых платежей</p>
             <TonConnectButton />
           </div>
         )}
       </div>
 
       <div className="wallet-benefits">
-        <h4>Преимущества подключения кошелька:</h4>
+        <h4>Почему стоит подключить TON кошелек:</h4>
         <ul>
-          <li>💰 Получение платежей напрямую на ваш кошелек</li>
-          <li>⚡ Быстрые транзакции в сети TON</li>
-          <li>🔒 Безопасное хранение средств</li>
-          <li>📱 Удобное управление через Telegram</li>
+          <li>Мгновенные платежи без комиссий</li>
+          <li>Максимальная безопасность блокчейна</li>
+          <li>Интеграция с Telegram</li>
+          <li>Поддержка всех популярных кошельков</li>
         </ul>
       </div>
     </div>

@@ -9,12 +9,32 @@ import { billApi, userApi } from "../services/api";
 const BillViewPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user, hapticFeedback, showError, showSuccess } = useTelegram();
+  const { user, hapticFeedback, showError, showSuccess, webApp } =
+    useTelegram();
   const { currentBill, fetchBill, isLoading } = useBillStore();
   const { isAuthenticated } = useAuth();
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [userData, setUserData] = useState<any>(null);
+
+  // Настройка Telegram BackButton
+  useEffect(() => {
+    if (webApp?.BackButton) {
+      webApp.BackButton.show();
+      webApp.BackButton.onClick(() => {
+        navigate(-1);
+      });
+    }
+
+    return () => {
+      if (webApp?.BackButton) {
+        webApp.BackButton.hide();
+        webApp.BackButton.offClick(() => {
+          navigate(-1);
+        });
+      }
+    };
+  }, [webApp, navigate]);
 
   useEffect(() => {
     // Загружаем счет только после аутентификации

@@ -38,6 +38,9 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
+
+  /* Отступ снизу для нижней навигации */
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
 }
 
 /* Telegram WebApp specific styles */
@@ -109,12 +112,108 @@ select:disabled {
   cursor: not-allowed;
 }
 
-/* TON Wallet Connect Styles */
+/* Profile Page Styles */
+.profile-page {
+  padding: 20px;
+  min-height: 100vh;
+  background: var(--tg-theme-bg-color, #ffffff);
+}
+
+.profile-header {
+  margin-bottom: 32px;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  border-radius: 20px;
+  color: white;
+  box-shadow: 0 8px 32px rgba(36, 129, 204, 0.2);
+}
+
+.user-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.user-avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-details h2 {
+  margin: 0 0 4px 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: white;
+}
+
+.user-details p {
+  margin: 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-section {
+  margin-top: 24px;
+}
+
+.settings-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tg-theme-text-color, #000000);
+}
+
+/* TON Wallet Connect Styles - Modern Design */
 .ton-wallet-connect {
-  padding: 16px;
-  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
-  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 20px;
+  padding: 24px;
   margin: 16px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(36, 129, 204, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ton-wallet-connect::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2481cc, #1e6bb8, #2481cc);
+  background-size: 200% 100%;
+  animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .wallet-header {
@@ -152,10 +251,39 @@ select:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: var(--tg-theme-bg-color, #ffffff);
-  border: 1px solid var(--tg-theme-button-color, #2481cc);
-  border-radius: 12px;
-  padding: 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border: 2px solid var(--tg-theme-button-color, #2481cc);
+  border-radius: 16px;
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 16px rgba(36, 129, 204, 0.15);
+}
+
+.wallet-connected::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(36, 129, 204, 0.05) 0%,
+    rgba(30, 107, 184, 0.05) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.wallet-connected:hover::before {
+  opacity: 1;
+}
+
+.wallet-connected:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(36, 129, 204, 0.2);
 }
 
 .wallet-info {
@@ -165,7 +293,26 @@ select:disabled {
 }
 
 .wallet-icon {
-  font-size: 24px;
+  font-size: 28px;
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
 }
 
 .wallet-details {
@@ -183,23 +330,62 @@ select:disabled {
   font-size: 16px;
   font-weight: 600;
   color: var(--tg-theme-text-color, #000000);
-  font-family: monospace;
+  font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5px;
 }
 
 .disconnect-button {
-  background: #ff4444;
+  background: linear-gradient(135deg, #ff4444 0%, #cc3333 100%);
   color: white;
   border: none;
-  border-radius: 8px;
-  padding: 8px 16px;
+  border-radius: 12px;
+  padding: 12px 20px;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.disconnect-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.disconnect-button:hover::before {
+  left: 100%;
 }
 
 .disconnect-button:hover {
-  background: #cc3333;
+  background: linear-gradient(135deg, #ff5555 0%, #dd4444 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 68, 68, 0.4);
+}
+
+.disconnect-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(255, 68, 68, 0.3);
 }
 
 .disconnect-button:disabled {
@@ -209,77 +395,226 @@ select:disabled {
 
 .wallet-disconnected {
   text-align: center;
-  padding: 20px;
+  padding: 32px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-radius: 16px;
+  border: 2px dashed var(--tg-theme-hint-color, #cbd5e1);
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-disconnected::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(36, 129, 204, 0.05) 50%,
+    transparent 70%
+  );
+  animation: shimmer-disconnected 3s ease-in-out infinite;
+}
+
+@keyframes shimmer-disconnected {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .wallet-icon-large {
-  font-size: 48px;
-  margin-bottom: 16px;
+  font-size: 64px;
+  margin-bottom: 20px;
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: float 3s ease-in-out infinite;
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .wallet-disconnected p {
-  margin: 0 0 20px 0;
-  font-size: 16px;
+  margin: 0 0 24px 0;
+  font-size: 18px;
   color: var(--tg-theme-text-color, #000000);
+  font-weight: 500;
+  position: relative;
+  z-index: 1;
 }
 
 .wallet-benefits {
-  background: var(--tg-theme-bg-color, #ffffff);
-  border-radius: 12px;
-  padding: 16px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(36, 129, 204, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.wallet-benefits::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #2481cc, #1e6bb8, #2481cc);
+  background-size: 200% 100%;
+  animation: shimmer 4s ease-in-out infinite;
 }
 
 .wallet-benefits h4 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
+  margin: 0 0 16px 0;
+  font-size: 18px;
   font-weight: 600;
   color: var(--tg-theme-text-color, #000000);
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .wallet-benefits ul {
   margin: 0;
-  padding-left: 20px;
+  padding-left: 0;
   list-style: none;
 }
 
 .wallet-benefits li {
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 12px;
+  font-size: 15px;
   color: var(--tg-theme-text-color, #000000);
   position: relative;
+  padding-left: 32px;
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.wallet-benefits li:hover {
+  transform: translateX(4px);
+  color: var(--tg-theme-button-color, #2481cc);
 }
 
 .wallet-benefits li::before {
-  content: "✓";
+  content: "✨";
   position: absolute;
-  left: -20px;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
   color: var(--tg-theme-button-color, #2481cc);
-  font-weight: bold;
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+@keyframes sparkle {
+  0%,
+  100% {
+    transform: translateY(-50%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-50%) scale(1.2);
+    opacity: 0.8;
+  }
 }
 
 /* TON Connect Button Override */
 .ton-wallet-connect .tc-wallets-list {
-  margin-top: 16px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
+  gap: 12px;
 }
 
 .ton-wallet-connect .tc-connect-button {
   margin: 0 auto;
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  border-radius: 16px;
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  color: white;
+  border: none;
+  box-shadow: 0 4px 16px rgba(36, 129, 204, 0.3);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.ton-wallet-connect .tc-connect-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.ton-wallet-connect .tc-connect-button:hover::before {
+  left: 100%;
+}
+
+.ton-wallet-connect .tc-connect-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(36, 129, 204, 0.4);
 }
 
 .ton-wallet-connect .tc-wallets-list-item {
-  background: var(--tg-theme-bg-color, #ffffff);
-  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
-  border-radius: 12px;
-  margin-bottom: 8px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  border: 2px solid var(--tg-theme-hint-color, #e0e0e0);
+  border-radius: 16px;
+  margin-bottom: 12px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .ton-wallet-connect .tc-wallets-list-item:hover {
-  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border-color: var(--tg-theme-button-color, #2481cc);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(36, 129, 204, 0.15);
 }
 
 /* Friends Debts Styles */
@@ -721,6 +1056,202 @@ select:disabled {
   font-size: 14px;
   font-weight: 400;
   font-style: italic;
+}
+
+/* Стили для CreateBillPage */
+.create-bill-page {
+  padding: 20px;
+  min-height: 100vh;
+  background: var(--tg-theme-bg-color, #ffffff);
+}
+
+.create-bill-page .header {
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-secondary-bg-color, #f8f9fa) 0%,
+    #e2e8f0 100%
+  );
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(36, 129, 204, 0.1);
+}
+
+.create-bill-page .header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--tg-theme-text-color, #000000);
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Стили для BillViewPage */
+.bill-view-page {
+  padding: 20px;
+  min-height: 100vh;
+  background: var(--tg-theme-bg-color, #ffffff);
+}
+
+.bill-header {
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-secondary-bg-color, #f8f9fa) 0%,
+    #e2e8f0 100%
+  );
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(36, 129, 204, 0.1);
+}
+
+.bill-title h1 {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--tg-theme-text-color, #000000);
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.bill-description {
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  color: var(--tg-theme-hint-color, #999999);
+  line-height: 1.4;
+}
+
+.bill-summary {
+  background: var(--tg-theme-bg-color, #ffffff);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid rgba(36, 129, 204, 0.1);
+}
+
+.total-amount {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.total-amount .amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--tg-theme-text-color, #000000);
+}
+
+.total-amount .currency {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--tg-theme-hint-color, #999999);
+}
+
+.progress-section {
+  margin-top: 16px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--tg-theme-button-color, #2481cc) 0%,
+    #1e6bb8 100%
+  );
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 14px;
+  color: var(--tg-theme-hint-color, #999999);
+  text-align: center;
+}
+
+/* Стили для BottomNavigation */
+.bottom-navigation {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--tg-theme-bg-color, #ffffff);
+  border-top: 1px solid var(--tg-theme-hint-color, #e0e0e0);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  /* Используем безопасные зоны Telegram */
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+  z-index: 1000;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.nav-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  min-width: 60px;
+}
+
+.nav-tab:hover {
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+}
+
+.nav-tab.active {
+  background: var(--tg-theme-button-color, #2481cc);
+  color: white;
+}
+
+.nav-tab.active .nav-icon {
+  transform: scale(1.1);
+}
+
+.nav-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+  transition: transform 0.2s ease;
+}
+
+.nav-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color, #000000);
+  text-align: center;
+  line-height: 1.2;
+}
+
+.nav-tab.active .nav-label {
+  color: white;
 }
 
 /* Стили для кнопок действий в BillViewPage */
@@ -1590,7 +2121,7 @@ select:disabled {
   margin-bottom: 10px;
 }
 
-/* Адаптивные стили для Toast */
+/* Адаптивные стили для мобильных устройств */
 @media (max-width: 768px) {
   .toast-container {
     top: 10px;
@@ -1600,5 +2131,638 @@ select:disabled {
 
   .toast-container > div {
     margin-bottom: 8px;
+  }
+
+  /* Мобильные стили для участников */
+  .participant-item {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
+  }
+
+  .participant-info {
+    justify-content: flex-start;
+    gap: 16px;
+  }
+
+  .participant-avatar {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .participant-details h4 {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  .participant-details p {
+    font-size: 15px;
+    margin-top: 2px;
+  }
+
+  .participant-amount-section {
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: var(--tg-theme-bg-color, #ffffff);
+    border-radius: 12px;
+    border: 2px solid var(--tg-theme-hint-color, #e0e0e0);
+  }
+
+  .amount-input {
+    width: 120px;
+    padding: 12px 16px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    border: none;
+    background: transparent;
+  }
+
+  .amount-input:focus {
+    outline: none;
+    box-shadow: none;
+  }
+
+  .currency-label {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--tg-theme-text-color, #000000);
+  }
+
+  .participant-actions {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+  }
+
+  .payer-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .payer-checkbox input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--tg-theme-button-color, #2481cc);
+  }
+
+  .payer-checkbox .checkbox-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--tg-theme-text-color, #000000);
+    margin-left: 8px;
+  }
+
+  .remove-participant {
+    padding: 10px 16px;
+    font-size: 14px;
+    border-radius: 8px;
+  }
+
+  /* Стили для себя как участника на мобильных */
+  .participant-item.self-participant .participant-amount-section {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .participant-item.self-participant .amount-input {
+    color: white;
+  }
+
+  .participant-item.self-participant .amount-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+  }
+
+  .participant-item.self-participant .currency-label {
+    color: white;
+  }
+
+  .participant-item.self-participant .payer-checkbox .checkbox-label {
+    color: white;
+  }
+
+  .participant-item.self-participant .payer-checkbox input[type="checkbox"] {
+    accent-color: white;
+  }
+
+  /* Улучшенные стили для формы добавления участника */
+  .participant-form {
+    padding: 20px 16px;
+    margin: 12px 0;
+  }
+
+  .participant-form h3 {
+    font-size: 20px;
+    margin-bottom: 16px;
+  }
+
+  .participant-form .form-group input {
+    padding: 16px;
+    font-size: 18px;
+    border-radius: 12px;
+  }
+
+  .participant-form .form-group label {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  /* Кнопки в форме */
+  .participant-form .form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .participant-form .form-actions button {
+    flex: 1;
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  /* Стили для секции "Нет друзей" */
+  .no-friends-section {
+    padding: 20px 16px;
+    text-align: center;
+    background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+    border-radius: 16px;
+    margin: 16px 0;
+  }
+
+  .no-friends-section .no-friends-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+
+  .no-friends-section h4 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: var(--tg-theme-text-color, #000000);
+  }
+
+  .no-friends-section p {
+    font-size: 15px;
+    color: var(--tg-theme-hint-color, #999999);
+    line-height: 1.4;
+    margin-bottom: 16px;
+  }
+
+  .add-manual-button {
+    padding: 16px 24px;
+    font-size: 16px;
+    border-radius: 12px;
+    border: 2px dashed var(--tg-theme-hint-color, #999999);
+    background: transparent;
+    color: var(--tg-theme-hint-color, #999999);
+    width: 100%;
+    transition: all 0.2s ease;
+  }
+
+  .add-manual-button:hover {
+    border-color: var(--tg-theme-button-color, #2481cc);
+    color: var(--tg-theme-button-color, #2481cc);
+    background: rgba(36, 129, 204, 0.05);
+  }
+
+  /* Стили для FriendsSelect на мобильных */
+  .friends-select.empty {
+    margin: 16px 0;
+  }
+
+  .friends-select.empty .select-trigger.disabled {
+    background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+    border: 2px solid var(--tg-theme-hint-color, #e0e0e0);
+    border-radius: 16px;
+    padding: 20px 16px;
+    text-align: center;
+  }
+
+  .friends-select.empty .select-value {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .friends-select.empty .option-icon {
+    font-size: 48px;
+    opacity: 0.5;
+  }
+
+  .friends-select.empty .option-label {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--tg-theme-text-color, #000000);
+  }
+
+  .friends-select.empty .empty-message {
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .friends-select.empty .empty-message p {
+    font-size: 15px;
+    color: var(--tg-theme-hint-color, #999999);
+    line-height: 1.4;
+    margin-bottom: 8px;
+  }
+
+  .friends-select.empty .empty-message p:last-child {
+    font-size: 13px;
+    margin-bottom: 0;
+  }
+
+  /* Стили для обычного FriendsSelect */
+  .friends-select .select-trigger {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  .friends-select .select-value {
+    font-size: 16px;
+  }
+
+  .friends-info {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  .friends-count {
+    font-size: 14px;
+    color: var(--tg-theme-hint-color, #999999);
+  }
+
+  /* Стили для секции добавления участника */
+  .add-participant-section {
+    margin-top: 20px;
+  }
+
+  .add-participant-section .friends-select {
+    margin-bottom: 16px;
+  }
+
+  /* Мобильные стили для кошелька */
+  .ton-wallet-connect {
+    padding: 20px 16px;
+    margin: 12px 0;
+  }
+
+  .wallet-connected {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .wallet-info {
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .wallet-icon {
+    font-size: 32px;
+  }
+
+  .wallet-details {
+    text-align: center;
+  }
+
+  .wallet-label {
+    font-size: 16px;
+  }
+
+  .wallet-address {
+    font-size: 18px;
+  }
+
+  .disconnect-button {
+    width: 100%;
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+
+  .wallet-disconnected {
+    padding: 24px 16px;
+  }
+
+  .wallet-icon-large {
+    font-size: 56px;
+  }
+
+  .wallet-disconnected p {
+    font-size: 16px;
+    margin-bottom: 20px;
+  }
+
+  .wallet-benefits {
+    padding: 16px;
+  }
+
+  .wallet-benefits h4 {
+    font-size: 16px;
+    margin-bottom: 12px;
+  }
+
+  .wallet-benefits li {
+    font-size: 14px;
+    margin-bottom: 10px;
+    padding-left: 28px;
+  }
+
+  .wallet-benefits li::before {
+    font-size: 14px;
+  }
+
+  .ton-wallet-connect .tc-connect-button {
+    padding: 14px 20px;
+    font-size: 15px;
+    width: 100%;
+  }
+
+  .ton-wallet-connect .tc-wallets-list-item {
+    padding: 14px;
+    margin-bottom: 10px;
+  }
+
+  /* Мобильные стили для BillViewPage */
+  .bill-view-page {
+    padding: 16px;
+  }
+
+  .bill-header {
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .bill-title h1 {
+    font-size: 20px;
+  }
+
+  .bill-description {
+    font-size: 15px;
+    margin-bottom: 16px;
+  }
+
+  .bill-summary {
+    padding: 16px;
+  }
+
+  .total-amount .amount {
+    font-size: 28px;
+  }
+
+  .total-amount .currency {
+    font-size: 16px;
+  }
+
+  /* Мобильные стили для CreateBillPage */
+  .create-bill-page {
+    padding: 16px;
+  }
+
+  .create-bill-page .header {
+    padding: 20px 16px;
+    margin-bottom: 20px;
+  }
+
+  .create-bill-page .header h1 {
+    font-size: 20px;
+  }
+
+  /* Мобильные стили для BottomNavigation */
+  .bottom-navigation {
+    padding: 6px 0;
+    padding-bottom: calc(6px + env(safe-area-inset-bottom));
+  }
+
+  .nav-tab {
+    padding: 6px 8px;
+    min-width: 50px;
+  }
+
+  .nav-icon {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+
+  .nav-label {
+    font-size: 11px;
+  }
+}
+
+/* Дополнительные стили для очень маленьких экранов */
+@media (max-width: 480px) {
+  .participant-item {
+    padding: 12px;
+  }
+
+  .participant-avatar {
+    width: 44px;
+    height: 44px;
+    font-size: 16px;
+  }
+
+  .participant-details h4 {
+    font-size: 16px;
+  }
+
+  .participant-details p {
+    font-size: 14px;
+  }
+
+  .amount-input {
+    width: 100px;
+    padding: 10px 12px;
+    font-size: 16px;
+  }
+
+  .currency-label {
+    font-size: 14px;
+  }
+
+  .participant-form {
+    padding: 16px 12px;
+  }
+
+  .participant-form .form-group input {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  /* FriendsSelect для очень маленьких экранов */
+  .friends-select.empty .select-trigger.disabled {
+    padding: 16px 12px;
+  }
+
+  .friends-select.empty .option-icon {
+    font-size: 40px;
+  }
+
+  .friends-select.empty .option-label {
+    font-size: 16px;
+  }
+
+  .friends-select.empty .empty-message p {
+    font-size: 14px;
+  }
+
+  .friends-select.empty .empty-message p:last-child {
+    font-size: 12px;
+  }
+
+  .friends-select .select-trigger {
+    padding: 14px;
+    font-size: 15px;
+  }
+
+  .friends-info {
+    padding: 10px 12px;
+  }
+
+  .friends-count {
+    font-size: 13px;
+  }
+
+  /* Кошелек для очень маленьких экранов */
+  .ton-wallet-connect {
+    padding: 16px 12px;
+  }
+
+  .wallet-connected {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .wallet-icon {
+    font-size: 28px;
+  }
+
+  .wallet-label {
+    font-size: 14px;
+  }
+
+  .wallet-address {
+    font-size: 16px;
+  }
+
+  .disconnect-button {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .wallet-disconnected {
+    padding: 20px 12px;
+  }
+
+  .wallet-icon-large {
+    font-size: 48px;
+  }
+
+  .wallet-disconnected p {
+    font-size: 15px;
+  }
+
+  .wallet-benefits {
+    padding: 14px;
+  }
+
+  .wallet-benefits h4 {
+    font-size: 15px;
+  }
+
+  .wallet-benefits li {
+    font-size: 13px;
+    padding-left: 24px;
+  }
+
+  .wallet-benefits li::before {
+    font-size: 12px;
+  }
+
+  .ton-wallet-connect .tc-connect-button {
+    padding: 12px 16px;
+    font-size: 14px;
+  }
+
+  .ton-wallet-connect .tc-wallets-list-item {
+    padding: 12px;
+  }
+
+  /* BillViewPage для очень маленьких экранов */
+  .bill-view-page {
+    padding: 12px;
+  }
+
+  .bill-header {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+  }
+
+  .bill-title h1 {
+    font-size: 18px;
+  }
+
+  .bill-description {
+    font-size: 14px;
+    margin-bottom: 12px;
+  }
+
+  .bill-summary {
+    padding: 14px;
+  }
+
+  .total-amount .amount {
+    font-size: 24px;
+  }
+
+  .total-amount .currency {
+    font-size: 14px;
+  }
+
+  /* CreateBillPage для очень маленьких экранов */
+  .create-bill-page {
+    padding: 12px;
+  }
+
+  .create-bill-page .header {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+  }
+
+  .create-bill-page .header h1 {
+    font-size: 18px;
+  }
+
+  /* BottomNavigation для очень маленьких экранов */
+  .bottom-navigation {
+    padding: 4px 0;
+    padding-bottom: calc(4px + env(safe-area-inset-bottom));
+  }
+
+  .nav-tab {
+    padding: 4px 6px;
+    min-width: 45px;
+  }
+
+  .nav-icon {
+    font-size: 16px;
+    margin-bottom: 1px;
+  }
+
+  .nav-label {
+    font-size: 10px;
   }
 }
