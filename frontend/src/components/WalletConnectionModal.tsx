@@ -1,9 +1,5 @@
 import React, { useEffect } from "react";
-import {
-  TonConnectUIProvider,
-  TonConnectButton,
-  useTonConnectUI,
-} from "@tonconnect/ui-react";
+import { TonConnectUIProvider, useTonConnectUI } from "@tonconnect/ui-react";
 import { useTelegram } from "../hooks/useTelegram";
 
 interface WalletConnectionModalProps {
@@ -20,8 +16,11 @@ const WalletConnectionContent: React.FC<{
   const [tonConnectUI] = useTonConnectUI();
 
   useEffect(() => {
+    console.log("WalletConnectionContent mounted, tonConnectUI:", tonConnectUI);
+
     // Подписываемся на изменения состояния подключения
     const unsubscribe = tonConnectUI.onStatusChange(wallet => {
+      console.log("Wallet status changed:", wallet);
       if (wallet && "account" in wallet) {
         showSuccess("Кошелек успешно подключен!");
         onWalletConnected?.(wallet.account.address);
@@ -45,7 +44,32 @@ const WalletConnectionContent: React.FC<{
 
       <div className="modal-body">
         <div className="wallet-connect-section">
-          <TonConnectButton />
+          <button
+            className="connect-wallet-button"
+            onClick={() => {
+              console.log("Connect wallet button clicked");
+              tonConnectUI.openModal();
+            }}
+            style={{
+              backgroundColor: "#0088cc",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              padding: "12px 24px",
+              fontSize: "16px",
+              fontWeight: "bold",
+              cursor: "pointer",
+              width: "100%",
+              maxWidth: "300px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "8px",
+            }}
+          >
+            <span>⚡</span>
+            Connect Wallet
+          </button>
         </div>
       </div>
     </div>

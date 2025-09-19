@@ -43,17 +43,17 @@ const StartAppHandler: FC = () => {
 
         if (response.ok) {
           console.log("✅ Successfully joined bill:", billId);
-          // Перенаправляем на страницу счета
-          navigate(`/bill/${billId}`);
+          // Перенаправляем на страницу счета, заменяя текущую запись в истории
+          navigate(`/bill/${billId}`, { replace: true });
         } else {
           console.error("❌ Failed to join bill:", response.status);
-          // Все равно перенаправляем на страницу счета
-          navigate(`/bill/${billId}`);
+          // Все равно перенаправляем на страницу счета, заменяя текущую запись в истории
+          navigate(`/bill/${billId}`, { replace: true });
         }
       } catch (error) {
         console.error("❌ Error processing startapp:", error);
-        // В случае ошибки все равно перенаправляем на страницу счета
-        navigate(`/bill/${billId}`);
+        // В случае ошибки все равно перенаправляем на страницу счета, заменяя текущую запись в истории
+        navigate(`/bill/${billId}`, { replace: true });
       }
     },
     [navigate]

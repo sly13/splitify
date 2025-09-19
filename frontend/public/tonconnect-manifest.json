@@ -1,5 +1,5 @@
 {
-  "url": "https://splitify.vadimsemenko.ru",
+  "url": "http://localhost:4040",
   "name": "Splitify",
-  "iconUrl": "https://splitify.vadimsemenko.ru/logo.png"
+  "iconUrl": "http://localhost:4040/logo.png"
 }

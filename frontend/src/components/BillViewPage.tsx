@@ -35,7 +35,17 @@ const BillViewPage: React.FC = () => {
     if (webApp?.BackButton) {
       webApp.BackButton.show();
       webApp.BackButton.onClick(() => {
-        navigate(-1);
+        // Проверяем, пришел ли пользователь по прямой ссылке (startapp)
+        const startParam = (webApp?.initDataUnsafe as { start_param?: string })
+          ?.start_param;
+
+        if (startParam) {
+          // Если пользователь пришел по прямой ссылке, идем на главную страницу
+          navigate("/", { replace: true });
+        } else {
+          // Если пользователь пришел из приложения, возвращаемся назад
+          navigate(-1);
+        }
       });
     }
 
@@ -43,7 +53,7 @@ const BillViewPage: React.FC = () => {
       if (webApp?.BackButton) {
         webApp.BackButton.hide();
         webApp.BackButton.offClick(() => {
-          navigate(-1);
+          // Очищаем обработчик
         });
       }
     };
