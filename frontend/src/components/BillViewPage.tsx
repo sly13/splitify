@@ -241,7 +241,7 @@ const BillViewPage: React.FC = () => {
       const response = await paymentApi.createPayment({
         billId: data.billId,
       });
-      return response;
+      return response.data;
     } catch (error) {
       console.error("Error creating payment intent:", error);
       throw error;
@@ -250,6 +250,10 @@ const BillViewPage: React.FC = () => {
 
   const openPayment = async (paymentIntent: PaymentIntent) => {
     try {
+      console.log("PaymentIntent received:", paymentIntent);
+      console.log("Provider:", paymentIntent.provider);
+      console.log("Deeplink:", paymentIntent.deeplink);
+
       if (paymentIntent.provider === "TON" && paymentIntent.deeplink) {
         // Для TON используем DeepLink
         const link = document.createElement("a");
@@ -258,7 +262,19 @@ const BillViewPage: React.FC = () => {
         link.click();
 
         showSuccess("Открываем кошелек TON для оплаты...");
+      } else if (paymentIntent.provider === "USDT" && paymentIntent.deeplink) {
+        // Для USDT тоже используем DeepLink
+        const link = document.createElement("a");
+        link.href = paymentIntent.deeplink;
+        link.target = "_blank";
+        link.click();
+
+        showSuccess("Открываем платежную систему для оплаты...");
       } else {
+        console.error("Unsupported payment provider or missing deeplink:", {
+          provider: paymentIntent.provider,
+          deeplink: paymentIntent.deeplink,
+        });
         showError("Платежная система недоступна");
       }
     } catch (error) {
