@@ -10,7 +10,7 @@ import {
   type PaymentIntent,
   type User,
 } from "../types/app";
-import { userApi } from "../services/api";
+import { userApi, paymentApi } from "../services/api";
 import { useWalletConnection } from "../hooks/useWalletConnection";
 import WalletConnectionModal from "./WalletConnectionModal";
 
@@ -238,24 +238,10 @@ const BillViewPage: React.FC = () => {
     currency: string;
   }): Promise<PaymentIntent> => {
     try {
-      const response = await fetch("/api/payments/intent", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          billId: data.billId,
-          amount: parseFloat(data.amount),
-          currency: data.currency,
-        }),
+      const response = await paymentApi.createPayment({
+        billId: data.billId,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create payment intent");
-      }
-
-      const result = await response.json();
-      return result;
+      return response;
     } catch (error) {
       console.error("Error creating payment intent:", error);
       throw error;
