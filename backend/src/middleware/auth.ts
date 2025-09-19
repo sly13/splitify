@@ -19,9 +19,11 @@ export async function authMiddleware(
   try {
     const initData = request.headers["x-telegram-init-data"] as string;
     const testModeHeader = request.headers["x-test-mode"] as string;
-    const isTestMode = testModeHeader === "true";
+    // Определяем тестовый режим по наличию заголовка x-test-mode
+    const isTestMode = !!testModeHeader && testModeHeader === "true";
 
     console.log("Auth middleware - Test mode header:", testModeHeader);
+    console.log("Auth middleware - Is test mode:", isTestMode);
     console.log("Auth middleware - URL:", request.url);
     console.log("Auth middleware - initData:", initData);
 
@@ -111,17 +113,23 @@ export async function authMiddleware(
     let validatedData: any;
     let telegramUserId: string;
 
-    // Проверяем, это тестовые данные или реальные
-    if (initData.includes("test_hash")) {
-      // Тестовый режим - парсим данные напрямую
+    // Проверяем, это тестовые данные, продакшн данные или реальные
+    if (
+      initData.includes("test_hash") ||
+      initData.includes("production_hash")
+    ) {
+      // Тестовый/продакшн режим - парсим данные напрямую
       const urlParams = new URLSearchParams(initData);
       const userParam = urlParams.get("user");
       if (userParam) {
         const userData = JSON.parse(decodeURIComponent(userParam));
         telegramUserId = userData.id.toString();
         validatedData = { user: userData };
+        console.log("Auth middleware - Using test/production data:", userData);
       } else {
-        return reply.status(401).send({ error: "Invalid test data" });
+        return reply
+          .status(401)
+          .send({ error: "Invalid test/production data" });
       }
     } else {
       // Реальный режим - валидируем через Telegram
