@@ -22,10 +22,14 @@ export async function authMiddleware(
     // Определяем тестовый режим по наличию заголовка x-test-mode
     const isTestMode = !!testModeHeader && testModeHeader === "true";
 
-    console.log("Auth middleware - Test mode header:", testModeHeader);
-    console.log("Auth middleware - Is test mode:", isTestMode);
-    console.log("Auth middleware - URL:", request.url);
-    console.log("Auth middleware - initData:", initData);
+    console.log("=== AUTH MIDDLEWARE START ===");
+    console.log("🔐 Auth middleware - Test mode header:", testModeHeader);
+    console.log("🔐 Auth middleware - Is test mode:", isTestMode);
+    console.log("🔐 Auth middleware - URL:", request.url);
+    console.log(
+      "🔐 Auth middleware - initData:",
+      initData ? "present" : "missing"
+    );
 
     // Если фронтенд указал тестовый режим, используем тестового пользователя
     if (isTestMode) {
@@ -60,10 +64,16 @@ export async function authMiddleware(
       await linkUserToBills(
         testUser.id,
         testUser.telegramUserId,
-        testUser.username
+        testUser.username || undefined
       );
 
       request.user = testUser as AuthenticatedUser;
+      console.log("✅ Auth middleware - Test user set:", {
+        id: testUser.id,
+        telegramUserId: testUser.telegramUserId,
+        username: testUser.username,
+        firstName: testUser.firstName,
+      });
       return; // Завершаем middleware с тестовым пользователем
     }
 

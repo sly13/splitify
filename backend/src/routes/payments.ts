@@ -22,18 +22,112 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
         const userId = request.user!.id;
         const telegramUserId = request.user!.telegramUserId;
 
-        // Найти участника для текущего пользователя
-        const participant = await prisma.billParticipant.findFirst({
-          where: {
-            billId,
-            OR: [{ userId }, { telegramUserId }],
-          },
-          include: {
-            bill: true,
+        console.log("=== PAYMENT INTENT REQUEST START ===");
+        console.log("📋 Request details:", {
+          billId,
+          userId,
+          telegramUserId,
+          userType: typeof userId,
+          telegramUserIdType: typeof telegramUserId,
+          headers: {
+            "x-test-mode": request.headers["x-test-mode"],
+            "x-telegram-init-data": request.headers["x-telegram-init-data"]
+              ? "present"
+              : "missing",
           },
         });
 
-        if (!participant) {
+        // Проверяем существование счета
+        console.log("🔍 Checking if bill exists...");
+        const bill = await prisma.bill.findUnique({
+          where: { id: billId },
+          select: {
+            id: true,
+            title: true,
+            currency: true,
+            creatorId: true,
+            status: true,
+          },
+        });
+
+        console.log("📄 Bill check result:", bill);
+
+        if (!bill) {
+          console.log("❌ Bill not found in database!");
+          return reply.status(404).send({ error: "Bill not found" });
+        }
+
+        // Получаем всех участников счета для диагностики
+        console.log("👥 Getting all participants for diagnostics...");
+        const allParticipants = await prisma.billParticipant.findMany({
+          where: { billId },
+          select: {
+            id: true,
+            userId: true,
+            telegramUserId: true,
+            name: true,
+            paymentStatus: true,
+            shareAmount: true,
+          },
+        });
+
+        console.log(
+          "👥 All participants found:",
+          JSON.stringify(allParticipants, null, 2)
+        );
+
+        // Найти участника для текущего пользователя
+        console.log("🔍 Searching for current user's participant...");
+        console.log("Search criteria:");
+        console.log("  - billId:", billId);
+        console.log("  - userId:", userId);
+        console.log("  - telegramUserId:", telegramUserId);
+
+        const participant = await prisma.billParticipant.findFirst({
+          where: {
+            billId,
+            OR: [{ userId: userId }, { telegramUserId: telegramUserId }],
+          },
+          include: {
+            bill: {
+              include: {
+                creator: true,
+              },
+            },
+          },
+        });
+
+        if (participant) {
+          console.log("✅ Found participant:", {
+            id: participant.id,
+            name: participant.name,
+            userId: participant.userId,
+            telegramUserId: participant.telegramUserId,
+            paymentStatus: participant.paymentStatus,
+            shareAmount: participant.shareAmount.toString(),
+            billTitle: participant.bill.title,
+          });
+        } else {
+          console.log("❌ PARTICIPANT NOT FOUND!");
+          console.log("🔍 Debug info:");
+          console.log("  - User ID we're looking for:", userId);
+          console.log(
+            "  - Telegram User ID we're looking for:",
+            telegramUserId
+          );
+          console.log("  - Available participants:");
+          allParticipants.forEach((p, i) => {
+            console.log(`    ${i + 1}. ${p.name}:`);
+            console.log(
+              `       - userId: ${p.userId} (match: ${p.userId === userId})`
+            );
+            console.log(
+              `       - telegramUserId: ${p.telegramUserId} (match: ${
+                p.telegramUserId === telegramUserId
+              })`
+            );
+          });
+
           return reply.status(404).send({ error: "Participant not found" });
         }
 
