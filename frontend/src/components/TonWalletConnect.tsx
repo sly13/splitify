@@ -175,6 +175,28 @@ const TonWalletConnect: React.FC<TonWalletConnectProps> = props => {
             bridgeUrl: "https://bridge.tonapi.io/bridge",
             platforms: ["ios", "android", "chrome", "firefox"],
           },
+          {
+            appName: "trustwallet",
+            name: "Trust Wallet",
+            imageUrl:
+              "https://trustwallet.com/assets/images/media/assets/TWT.png",
+            aboutUrl: "https://trustwallet.com",
+            universalLink:
+              "https://link.trustwallet.com/open_url?coin_id=607&url=",
+            jsBridgeKey: "trustwallet",
+            bridgeUrl: "https://bridge.tonapi.io/bridge",
+            platforms: ["ios", "android"],
+          },
+          {
+            appName: "metamask",
+            name: "MetaMask",
+            imageUrl: "https://metamask.io/images/metamask-logo.png",
+            aboutUrl: "https://metamask.io",
+            universalLink: "https://metamask.app.link/dapp/",
+            jsBridgeKey: "metamask",
+            bridgeUrl: "https://bridge.tonapi.io/bridge",
+            platforms: ["chrome", "firefox"],
+          },
         ],
       }}
       actionsConfiguration={{
