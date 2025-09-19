@@ -94,8 +94,7 @@ api.interceptors.request.use(
         JSON.stringify(userData)
       )}&auth_date=${authDate}&hash=production_hash`;
 
-      config.headers.set("x-telegram-hash", "production_hash");
-      config.headers.set("x-user-id", userId);
+      // Отправляем только x-telegram-init-data - в нем есть вся информация
       config.headers.set("x-telegram-init-data", initData);
     }
 
