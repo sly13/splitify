@@ -83,10 +83,7 @@ fastify.get("/health", async (request, reply) => {
   return { status: "ok", timestamp: new Date().toISOString() };
 });
 
-// Обработка OPTIONS запросов для CORS
-fastify.options("/*", async (request, reply) => {
-  reply.status(200).send();
-});
+// CORS плагин уже обрабатывает OPTIONS запросы автоматически
 
 // Обработка ошибок
 fastify.setErrorHandler((error, request, reply) => {
