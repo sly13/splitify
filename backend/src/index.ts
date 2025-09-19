@@ -31,6 +31,7 @@ fastify.register(cors, {
       "http://localhost:4042", // админка в Docker
       "https://ab710ea9a264.ngrok-free.app", // новый ngrok URL
       "https://splitify.vadimsemenko.ru",
+      "https://web.telegram.org",
     ];
 
     // Разрешаем запросы без origin (например, мобильные приложения)
