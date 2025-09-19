@@ -60,7 +60,7 @@ api.interceptors.request.use(
     if (tg) {
       // Добавляем заголовки для аутентификации
       if (tg.initData) {
-        config.headers.set("x-telegram-hash", tg.initDataUnsafe.hash || "");
+        // config.headers.set("x-telegram-hash", tg.initDataUnsafe.hash || "");
         // config.headers.set(
         //   "x-user-id",
         //   tg.initDataUnsafe.user?.id?.toString() || ""
