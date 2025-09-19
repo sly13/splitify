@@ -114,42 +114,34 @@ select:disabled {
 
 /* Profile Page Styles */
 .profile-page {
-  padding: 20px;
-  min-height: 100vh;
+  padding: 16px;
   background: var(--tg-theme-bg-color, #ffffff);
 }
 
 .profile-header {
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .user-info {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 20px;
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  border-radius: 20px;
-  color: white;
-  box-shadow: 0 8px 32px rgba(36, 129, 204, 0.2);
+  gap: 12px;
+  padding: 16px;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 8px;
 }
 
 .user-avatar {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--tg-theme-button-color, #2481cc);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  font-weight: 600;
-  backdrop-filter: blur(10px);
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
 }
 
 .user-avatar img {
@@ -160,60 +152,38 @@ select:disabled {
 }
 
 .user-details h2 {
-  margin: 0 0 4px 0;
-  font-size: 20px;
-  font-weight: 600;
-  color: white;
+  margin: 0 0 2px 0;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--tg-theme-text-color, #000000);
 }
 
 .user-details p {
   margin: 0;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 13px;
+  color: var(--tg-theme-hint-color, #999999);
 }
 
 .settings-section {
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .settings-section h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
   color: var(--tg-theme-text-color, #000000);
 }
 
 /* TON Wallet Connect Styles - Modern Design */
 .ton-wallet-connect {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 20px;
-  padding: 24px;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 12px;
+  padding: 20px;
   margin: 16px 0;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(36, 129, 204, 0.1);
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
   position: relative;
   overflow: hidden;
-}
-
-.ton-wallet-connect::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, #2481cc, #1e6bb8, #2481cc);
-  background-size: 200% 100%;
-  animation: shimmer 3s ease-in-out infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
 }
 
 .wallet-header {
@@ -251,39 +221,10 @@ select:disabled {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-  border: 2px solid var(--tg-theme-button-color, #2481cc);
-  border-radius: 16px;
-  padding: 20px;
-  position: relative;
-  overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(36, 129, 204, 0.15);
-}
-
-.wallet-connected::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    135deg,
-    rgba(36, 129, 204, 0.05) 0%,
-    rgba(30, 107, 184, 0.05) 100%
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.wallet-connected:hover::before {
-  opacity: 1;
-}
-
-.wallet-connected:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(36, 129, 204, 0.2);
+  background: var(--tg-theme-bg-color, #ffffff);
+  border: 1px solid var(--tg-theme-button-color, #2481cc);
+  border-radius: 8px;
+  padding: 16px;
 }
 
 .wallet-info {
@@ -293,26 +234,8 @@ select:disabled {
 }
 
 .wallet-icon {
-  font-size: 28px;
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.05);
-  }
+  font-size: 24px;
+  color: var(--tg-theme-button-color, #2481cc);
 }
 
 .wallet-details {
@@ -327,23 +250,14 @@ select:disabled {
 }
 
 .wallet-address {
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 500;
   color: var(--tg-theme-text-color, #000000);
   font-family: "SF Mono", "Monaco", "Inconsolata", "Roboto Mono", monospace;
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: 0.5px;
 }
 
 .disconnect-button {
-  background: linear-gradient(135deg, #ff4444 0%, #cc3333 100%);
+  background: var(--tg-theme-button-color, #2481cc);
   color: white;
   border: none;
   border-radius: 12px;
@@ -389,72 +303,25 @@ select:disabled {
 }
 
 .disconnect-button:disabled {
-  background: #ccc;
+  background: var(--tg-theme-hint-color, #ccc);
   cursor: not-allowed;
 }
 
 .wallet-disconnected {
   text-align: center;
-  padding: 32px 20px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-  border-radius: 16px;
-  border: 2px dashed var(--tg-theme-hint-color, #cbd5e1);
-  position: relative;
-  overflow: hidden;
-}
-
-.wallet-disconnected::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    45deg,
-    transparent 30%,
-    rgba(36, 129, 204, 0.05) 50%,
-    transparent 70%
-  );
-  animation: shimmer-disconnected 3s ease-in-out infinite;
-}
-
-@keyframes shimmer-disconnected {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 8px;
+  border: 1px dashed var(--tg-theme-hint-color, #cbd5e1);
 }
 
 .wallet-icon-large {
-  font-size: 64px;
-  margin-bottom: 20px;
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: float 3s ease-in-out infinite;
-  position: relative;
-  z-index: 1;
-}
-
-@keyframes float {
-  0%,
-  100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+  font-size: 48px;
+  margin-bottom: 16px;
+  color: var(--tg-theme-button-color, #2481cc);
 }
 
 .wallet-disconnected p {
@@ -467,40 +334,17 @@ select:disabled {
 }
 
 .wallet-benefits {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(36, 129, 204, 0.1);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-  position: relative;
-  overflow: hidden;
-}
-
-.wallet-benefits::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #2481cc, #1e6bb8, #2481cc);
-  background-size: 200% 100%;
-  animation: shimmer 4s ease-in-out infinite;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .wallet-benefits h4 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 500;
   color: var(--tg-theme-text-color, #000000);
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .wallet-benefits ul {
@@ -510,42 +354,20 @@ select:disabled {
 }
 
 .wallet-benefits li {
-  margin-bottom: 12px;
-  font-size: 15px;
+  margin-bottom: 8px;
+  font-size: 14px;
   color: var(--tg-theme-text-color, #000000);
   position: relative;
-  padding-left: 32px;
-  display: flex;
-  align-items: center;
-  transition: all 0.2s ease;
-}
-
-.wallet-benefits li:hover {
-  transform: translateX(4px);
-  color: var(--tg-theme-button-color, #2481cc);
+  padding-left: 20px;
 }
 
 .wallet-benefits li::before {
-  content: "✨";
+  content: "•";
   position: absolute;
   left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 16px;
+  top: 0;
   color: var(--tg-theme-button-color, #2481cc);
-  animation: sparkle 2s ease-in-out infinite;
-}
-
-@keyframes sparkle {
-  0%,
-  100% {
-    transform: translateY(-50%) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translateY(-50%) scale(1.2);
-    opacity: 0.8;
-  }
+  font-weight: bold;
 }
 
 /* TON Connect Button Override */
@@ -1066,31 +888,18 @@ select:disabled {
 }
 
 .create-bill-page .header {
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-secondary-bg-color, #f8f9fa) 0%,
-    #e2e8f0 100%
-  );
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(36, 129, 204, 0.1);
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .create-bill-page .header h1 {
   margin: 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 500;
   color: var(--tg-theme-text-color, #000000);
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 /* Стили для BillViewPage */
@@ -1101,31 +910,18 @@ select:disabled {
 }
 
 .bill-header {
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-secondary-bg-color, #f8f9fa) 0%,
-    #e2e8f0 100%
-  );
-  border-radius: 20px;
-  padding: 24px;
-  margin-bottom: 24px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid rgba(36, 129, 204, 0.1);
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .bill-title h1 {
   margin: 0 0 8px 0;
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 500;
   color: var(--tg-theme-text-color, #000000);
-  background: linear-gradient(
-    135deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
-  );
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
 }
 
 .bill-description {
@@ -1228,8 +1024,9 @@ select:disabled {
 }
 
 .nav-tab.active {
-  background: var(--tg-theme-button-color, #2481cc);
-  color: white;
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  color: var(--tg-theme-text-color, #000000);
+  border: 1px solid var(--tg-theme-hint-color, #e0e0e0);
 }
 
 .nav-tab.active .nav-icon {
@@ -1251,7 +1048,8 @@ select:disabled {
 }
 
 .nav-tab.active .nav-label {
-  color: white;
+  color: var(--tg-theme-text-color, #000000);
+  font-weight: 600;
 }
 
 /* Стили для кнопок действий в BillViewPage */
@@ -2061,6 +1859,31 @@ select:disabled {
   height: 18px;
   accent-color: var(--tg-theme-button-color, #2481cc);
   cursor: pointer;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--tg-theme-hint-color, #e0e0e0);
+  border-radius: 4px;
+  background: var(--tg-theme-bg-color, #ffffff);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+}
+
+.payer-checkbox input[type="checkbox"]:checked {
+  background: var(--tg-theme-button-color, #2481cc);
+  border-color: var(--tg-theme-button-color, #2481cc);
+}
+
+.payer-checkbox input[type="checkbox"]:checked::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .checkbox-label {
@@ -2211,6 +2034,29 @@ select:disabled {
     width: 20px;
     height: 20px;
     accent-color: var(--tg-theme-button-color, #2481cc);
+    border: 2px solid var(--tg-theme-hint-color, #e0e0e0);
+    border-radius: 4px;
+    background: var(--tg-theme-bg-color, #ffffff);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    position: relative;
+  }
+
+  .payer-checkbox input[type="checkbox"]:checked {
+    background: var(--tg-theme-button-color, #2481cc);
+    border-color: var(--tg-theme-button-color, #2481cc);
+  }
+
+  .payer-checkbox input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
   }
 
   .payer-checkbox .checkbox-label {
@@ -2250,6 +2096,21 @@ select:disabled {
 
   .participant-item.self-participant .payer-checkbox input[type="checkbox"] {
     accent-color: white;
+    border-color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .participant-item.self-participant
+    .payer-checkbox
+    input[type="checkbox"]:checked {
+    background: white;
+    border-color: white;
+  }
+
+  .participant-item.self-participant
+    .payer-checkbox
+    input[type="checkbox"]:checked::after {
+    color: var(--tg-theme-button-color, #2481cc);
   }
 
   /* Улучшенные стили для формы добавления участника */
