@@ -24,13 +24,25 @@ fastify.decorate("adminAuthMiddleware", adminAuthMiddleware);
 
 // Настраиваем CORS
 fastify.register(cors, {
-  origin: [
-    process.env.FRONTEND_URL || "http://localhost:3000",
-    "http://localhost:4040", // фронтенд в Docker
-    "http://localhost:4042", // админка в Docker
-    "https://ab710ea9a264.ngrok-free.app", // новый ngrok URL
-    "https://splitify.vadimsemenko.ru",
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = [
+      process.env.FRONTEND_URL || "http://localhost:3000",
+      "http://localhost:4040", // фронтенд в Docker
+      "http://localhost:4042", // админка в Docker
+      "https://ab710ea9a264.ngrok-free.app", // новый ngrok URL
+      "https://splitify.vadimsemenko.ru",
+    ];
+
+    // Разрешаем запросы без origin (например, мобильные приложения)
+    if (!origin) return callback(null, true);
+
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    console.log("CORS: Origin not allowed:", origin);
+    return callback(new Error("Not allowed by CORS"), false);
+  },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
   allowedHeaders: [
@@ -44,6 +56,11 @@ fastify.register(cors, {
     "x-first-name",
     "x-test-mode",
     "X-Telegram-Init-Data",
+    "X-Test-Mode",
+    "Accept",
+    "Origin",
+    "Referer",
+    "User-Agent",
   ],
   exposedHeaders: ["Content-Type", "Authorization"],
 });

@@ -55,13 +55,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         initData: window.Telegram?.WebApp?.initData,
         initDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe,
       });
-      
+
       // Принудительно делаем аутентификацию даже без Telegram WebApp
       setIsLoading(true);
       try {
         console.log("🔐 Forcing authentication without Telegram WebApp...");
         const response = await userApi.getMe();
-        
+
         if (response.data?.success) {
           console.log("✅ Authentication successful:", response.data.user);
           setUser(response.data.user);
