@@ -11,6 +11,7 @@ import { adminAuthRoutes } from "./routes/admin/auth";
 import { adminDataRoutes } from "./routes/admin/data";
 import { adminFriendsRoutes } from "./routes/admin/friends";
 import { setupWebSocket } from "./websocket";
+import { paymentMonitorService } from "./services/paymentMonitor";
 
 const fastify = Fastify({
   logger: {
@@ -106,6 +107,9 @@ fastify.setErrorHandler((error, request, reply) => {
 // Graceful shutdown
 const gracefulShutdown = async () => {
   try {
+    // Останавливаем мониторинг платежей
+    paymentMonitorService.stopMonitoring();
+    
     await fastify.close();
     console.log("Server closed gracefully");
     process.exit(0);
@@ -126,6 +130,9 @@ const start = async () => {
 
     await fastify.listen({ port, host });
     console.log(`Server is running on http://${host}:${port}`);
+    
+    // Запускаем мониторинг платежей
+    paymentMonitorService.startMonitoring();
   } catch (error) {
     fastify.log.error(error);
     process.exit(1);

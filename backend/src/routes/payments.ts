@@ -7,6 +7,7 @@ import {
   PaymentWebhookResponse,
 } from "../types";
 import Decimal from "decimal.js";
+import { tonBlockchainService } from "../services/tonBlockchainService";
 
 export async function paymentsRoutes(fastify: FastifyInstance) {
   // Создание платежного намерения
@@ -54,6 +55,14 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
             .send({ error: "Payment already in progress" });
         }
 
+        // Получаем адрес кошелька создателя счета
+        const creatorWalletAddress = participant.bill.creator?.tonWalletAddress;
+        if (!creatorWalletAddress && participant.bill.currency === "TON") {
+          return reply.status(400).send({
+            error: "Creator wallet address is required for TON payments",
+          });
+        }
+
         // Создаем платеж
         const payment = await prisma.payment.create({
           data: {
@@ -64,7 +73,9 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
             amount: participant.shareAmount,
             deeplink: generatePaymentDeeplink(
               participant.bill.currency,
-              participant.shareAmount
+              participant.shareAmount,
+              billId, // Передаем billId для включения в комментарий
+              creatorWalletAddress // Передаем адрес кошелька создателя
             ),
             externalId: generateExternalId(),
           },
@@ -184,15 +195,172 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
     }
   });
 
+  // Ручная проверка статуса платежа в блокчейне
+  fastify.post<{ Params: { paymentId: string } }>(
+    "/api/payments/:paymentId/check",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { paymentId } = request.params;
+        const userId = request.user!.id;
+
+        // Проверяем, что пользователь имеет доступ к этому платежу
+        const payment = await prisma.payment.findUnique({
+          where: { id: paymentId },
+          include: {
+            participant: true,
+            bill: true,
+          },
+        });
+
+        if (!payment) {
+          return reply.status(404).send({ error: "Payment not found" });
+        }
+
+        // Проверяем права доступа
+        const hasAccess =
+          payment.participant.userId === userId ||
+          payment.participant.telegramUserId === userId.toString() ||
+          payment.bill.creatorId === userId;
+
+        if (!hasAccess) {
+          return reply.status(403).send({ error: "Access denied" });
+        }
+
+        // Проверяем статус в блокчейне
+        const isConfirmed =
+          await tonBlockchainService.checkAndUpdatePaymentStatus(paymentId);
+
+        if (isConfirmed) {
+          return reply.send({
+            success: true,
+            message: "Payment confirmed in blockchain",
+            status: "confirmed",
+          });
+        } else {
+          return reply.send({
+            success: false,
+            message: "Payment not found in blockchain",
+            status: payment.status,
+          });
+        }
+      } catch (error) {
+        console.error("Error checking payment status:", error);
+        return reply
+          .status(500)
+          .send({ error: "Failed to check payment status" });
+      }
+    }
+  );
+
+  // Получение информации о платеже
+  fastify.get<{ Params: { paymentId: string } }>(
+    "/api/payments/:paymentId",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { paymentId } = request.params;
+        const userId = request.user!.id;
+
+        const payment = await prisma.payment.findUnique({
+          where: { id: paymentId },
+          include: {
+            participant: {
+              include: {
+                user: true,
+              },
+            },
+            bill: true,
+          },
+        });
+
+        if (!payment) {
+          return reply.status(404).send({ error: "Payment not found" });
+        }
+
+        // Проверяем права доступа
+        const hasAccess =
+          payment.participant.userId === userId ||
+          payment.participant.telegramUserId === userId.toString() ||
+          payment.bill.creatorId === userId;
+
+        if (!hasAccess) {
+          return reply.status(403).send({ error: "Access denied" });
+        }
+
+        return reply.send({
+          success: true,
+          data: {
+            id: payment.id,
+            billId: payment.billId,
+            amount: payment.amount.toString(),
+            currency: payment.provider,
+            status: payment.status,
+            transactionHash: payment.transactionHash,
+            createdAt: payment.createdAt,
+            completedAt: payment.completedAt,
+            deeplink: payment.deeplink,
+            participant: {
+              id: payment.participant.id,
+              name: payment.participant.name,
+              shareAmount: payment.participant.shareAmount.toString(),
+            },
+            bill: {
+              id: payment.bill.id,
+              title: payment.bill.title,
+              totalAmount: payment.bill.totalAmount.toString(),
+            },
+          },
+        });
+      } catch (error) {
+        console.error("Error getting payment info:", error);
+        return reply.status(500).send({ error: "Failed to get payment info" });
+      }
+    }
+  );
 }
 
 // Вспомогательные функции для генерации платежных данных
-function generatePaymentDeeplink(provider: string, amount: Decimal): string {
+function generatePaymentDeeplink(
+  provider: string,
+  amount: Decimal,
+  billId?: string,
+  creatorWalletAddress?: string
+): string {
+  if (provider === "TON") {
+    // Для TON используем стандартный DeepLink формат
+    // ton://transfer/<address>?amount=<amount>&text=<description>
+    if (!creatorWalletAddress) {
+      throw new Error("Creator wallet address is required for TON payments");
+    }
+
+    const amountInNanoTON = amount.mul(1000000000); // Конвертируем в nanoTON
+
+    // Включаем bill ID в комментарий для отслеживания
+    const comment = billId
+      ? `Split Bill Payment - bill_${billId}`
+      : "Split Bill Payment";
+
+    return `ton://transfer/${creatorWalletAddress}?amount=${amountInNanoTON.toString()}&text=${encodeURIComponent(
+      comment
+    )}`;
+  } else if (provider === "USDT") {
+    const baseUrls = {
+      USDT: process.env.USDT_PROVIDER_URL || "https://mock-usdt-provider.com",
+    };
+    const url = baseUrls[provider as keyof typeof baseUrls];
+    return `${url}/pay?amount=${amount.toString()}&currency=${provider}`;
+  }
+
+  // Fallback для других провайдеров
   const baseUrls = {
     TON: process.env.TON_PROVIDER_URL || "https://mock-ton-provider.com",
     USDT: process.env.USDT_PROVIDER_URL || "https://mock-usdt-provider.com",
   };
-
   const url = baseUrls[provider as keyof typeof baseUrls];
   return `${url}/pay?amount=${amount.toString()}&currency=${provider}`;
 }

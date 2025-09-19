@@ -15,6 +15,7 @@
     "db:reset": "prisma migrate reset",
     "test:user": "tsx scripts/create-test-user.ts",
     "create:admin": "tsx scripts/create-admin.ts",
+    "test:ton-api": "tsx scripts/test-ton-api.ts",
     "lint": "tsc --noEmit"
   },
   "dependencies": {
@@ -23,14 +24,18 @@
     "@prisma/client": "^5.7.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
+    "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
     "decimal.js": "^10.4.3",
+    "dotenv": "^17.2.2",
     "fastify": "^4.24.3",
     "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
     "zod": "^4.1.9"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",
+    "@types/node-cron": "^3.0.11",
     "prisma": "^5.7.1",
     "tsx": "^4.6.2",
     "typescript": "^5.3.3"
