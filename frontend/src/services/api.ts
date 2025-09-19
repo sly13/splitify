@@ -3,13 +3,18 @@ import axios, { type AxiosInstance, type AxiosResponse } from "axios";
 // Определяем тестовый режим с безопасным дефолтом в dev
 const isTestMode = (): boolean => {
   const envFlag = import.meta.env.VITE_TEST_MODE as string | undefined;
-  // Если переменная не задана, в dev-режиме включаем тест по умолчанию
-  const fallback = import.meta.env.DEV ? "true" : "false";
-  return (envFlag ?? fallback) === "true";
+  // В dev-режиме всегда включаем тест, если явно не отключен
+  if (import.meta.env.DEV) {
+    return envFlag !== "false";
+  }
+  // В продакшене используем значение из переменной окружения
+  return envFlag === "true";
 };
 
 // Базовый URL API (будет настроен в зависимости от окружения)
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const API_BASE_URL = import.meta.env.DEV
+  ? "http://localhost:4041/api"
+  : import.meta.env.VITE_API_BASE_URL;
 
 console.log("🔧 API Configuration:", {
   API_BASE_URL,
@@ -55,7 +60,10 @@ api.interceptors.request.use(
       !!tg
     );
 
-    // Не добавляем заголовок x-test-mode - определяем режим по его отсутствию
+    // Добавляем заголовок x-test-mode для тестового режима
+    if (testMode) {
+      config.headers.set("x-test-mode", "true");
+    }
 
     if (tg) {
       // Добавляем заголовки для аутентификации
