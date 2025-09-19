@@ -61,10 +61,10 @@ api.interceptors.request.use(
       // Добавляем заголовки для аутентификации
       if (tg.initData) {
         config.headers.set("x-telegram-hash", tg.initDataUnsafe.hash || "");
-        config.headers.set(
-          "x-user-id",
-          tg.initDataUnsafe.user?.id?.toString() || ""
-        );
+        // config.headers.set(
+        //   "x-user-id",
+        //   tg.initDataUnsafe.user?.id?.toString() || ""
+        // );
         config.headers.set("x-telegram-init-data", tg.initData);
       }
     } else if (testMode) {
