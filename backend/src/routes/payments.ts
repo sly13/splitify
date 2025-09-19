@@ -8,6 +8,7 @@ import {
 } from "../types";
 import Decimal from "decimal.js";
 import { tonBlockchainService } from "../services/tonBlockchainService";
+import { createTonPaymentDeeplink } from "../utils/tonAddress";
 
 export async function paymentsRoutes(fastify: FastifyInstance) {
   // Создание платежного намерения
@@ -131,11 +132,15 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
           return reply.status(404).send({ error: "Participant not found" });
         }
 
+        console.log("💰 Checking payment status and conditions...");
+
         if (participant.paymentStatus === "paid") {
+          console.log("❌ Payment already completed");
           return reply.status(400).send({ error: "Payment already completed" });
         }
 
         // Проверяем, есть ли уже активный платеж
+        console.log("🔍 Checking for existing payment...");
         const existingPayment = await prisma.payment.findFirst({
           where: {
             participantId: participant.id,
@@ -143,57 +148,134 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
           },
         });
 
+        console.log("Existing payment:", existingPayment);
+
         if (existingPayment) {
+          console.log("❌ Payment already in progress");
           return reply
             .status(400)
             .send({ error: "Payment already in progress" });
         }
 
         // Получаем адрес кошелька создателя счета
-        const creatorWalletAddress = participant.bill.creator?.tonWalletAddress;
+        console.log("🏦 Getting creator wallet address...");
+        console.log("Bill currency:", participant.bill.currency);
+        console.log("Creator info:", participant.bill.creator);
+
+        let creatorWalletAddress = participant.bill.creator?.tonWalletAddress;
+        console.log("Creator wallet address:", creatorWalletAddress);
+
         if (!creatorWalletAddress && participant.bill.currency === "TON") {
-          return reply.status(400).send({
-            error: "Creator wallet address is required for TON payments",
+          console.log(
+            "❌ Creator wallet address not found in bill, checking user profile..."
+          );
+
+          // Попробуем получить адрес кошелька из профиля пользователя
+          const userProfile = await prisma.user.findUnique({
+            where: { id: participant.bill.creatorId },
+            select: { tonWalletAddress: true },
           });
+
+          if (userProfile?.tonWalletAddress) {
+            console.log(
+              "✅ Found wallet address in user profile:",
+              userProfile.tonWalletAddress
+            );
+            // Обновляем адрес кошелька в счете для будущих запросов
+            await prisma.bill.update({
+              where: { id: participant.bill.id },
+              data: {
+                creator: {
+                  update: {
+                    tonWalletAddress: userProfile.tonWalletAddress,
+                  },
+                },
+              },
+            });
+            // Используем найденный адрес
+            creatorWalletAddress = userProfile.tonWalletAddress;
+          } else {
+            console.log("❌ No wallet address found in user profile either");
+            console.log(
+              "💡 Suggestion: Creator should connect their TON wallet first"
+            );
+            return reply.status(400).send({
+              error:
+                "Creator wallet address not found. Please connect your TON wallet first.",
+              details:
+                "The creator of this bill needs to connect their TON wallet to receive payments.",
+            });
+          }
         }
 
         // Создаем платеж
-        const payment = await prisma.payment.create({
-          data: {
-            billId,
-            participantId: participant.id,
-            provider: participant.bill.currency,
-            status: "created",
-            amount: participant.shareAmount,
-            deeplink: generatePaymentDeeplink(
-              participant.bill.currency,
-              participant.shareAmount,
-              billId, // Передаем billId для включения в комментарий
-              creatorWalletAddress // Передаем адрес кошелька создателя
-            ),
-            externalId: generateExternalId(),
-          },
+        console.log("💳 Creating payment...");
+        console.log("Payment data:", {
+          billId,
+          participantId: participant.id,
+          provider: participant.bill.currency,
+          amount: participant.shareAmount.toString(),
+          creatorWalletAddress,
         });
 
-        // Обновляем статус участника
-        await prisma.billParticipant.update({
-          where: { id: participant.id },
-          data: {
+        try {
+          console.log("🔗 Generating deeplink...");
+          const deeplink = generatePaymentDeeplink(
+            participant.bill.currency,
+            participant.shareAmount,
+            billId, // Передаем billId для включения в комментарий
+            creatorWalletAddress || undefined // Передаем адрес кошелька создателя
+          );
+          console.log("Generated deeplink:", deeplink);
+
+          const payment = await prisma.payment.create({
+            data: {
+              billId,
+              participantId: participant.id,
+              provider: participant.bill.currency,
+              status: "created",
+              amount: participant.shareAmount,
+              deeplink,
+              externalId: generateExternalId(),
+            },
+          });
+
+          console.log("✅ Payment created:", {
+            id: payment.id,
+            provider: payment.provider,
+            status: payment.status,
+            amount: payment.amount.toString(),
+          });
+
+          // Обновляем статус участника
+          console.log("📝 Updating participant status...");
+          await prisma.billParticipant.update({
+            where: { id: participant.id },
+            data: {
+              paymentId: payment.id,
+              paymentStatus: "pending",
+            },
+          });
+
+          const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
+
+          const response: PaymentIntentResponse = {
             paymentId: payment.id,
-            paymentStatus: "pending",
-          },
-        });
+            provider: payment.provider,
+            deeplink: payment.deeplink!,
+            expiresAt: expiresAt.toISOString(),
+          };
 
-        const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 минут
+          console.log("✅ Payment intent response:", response);
+          console.log("=== PAYMENT INTENT REQUEST END ===");
 
-        const response: PaymentIntentResponse = {
-          paymentId: payment.id,
-          provider: payment.provider,
-          deeplink: payment.deeplink!,
-          expiresAt: expiresAt.toISOString(),
-        };
-
-        return reply.status(201).send(response);
+          return reply.status(201).send(response);
+        } catch (deeplinkError) {
+          console.error("❌ Error generating deeplink:", deeplinkError);
+          return reply
+            .status(400)
+            .send({ error: "Failed to generate payment link" });
+        }
       } catch (error) {
         console.error("Error creating payment intent:", error);
         return reply
@@ -394,9 +476,8 @@ export async function paymentsRoutes(fastify: FastifyInstance) {
             amount: payment.amount.toString(),
             currency: payment.provider,
             status: payment.status,
-            transactionHash: payment.transactionHash,
             createdAt: payment.createdAt,
-            completedAt: payment.completedAt,
+            updatedAt: payment.updatedAt,
             deeplink: payment.deeplink,
             participant: {
               id: payment.participant.id,
@@ -426,8 +507,7 @@ function generatePaymentDeeplink(
   creatorWalletAddress?: string
 ): string {
   if (provider === "TON") {
-    // Для TON используем стандартный DeepLink формат
-    // ton://transfer/<address>?amount=<amount>&text=<description>
+    // Для TON используем улучшенную функцию создания DeepLink
     if (!creatorWalletAddress) {
       throw new Error("Creator wallet address is required for TON payments");
     }
@@ -439,9 +519,11 @@ function generatePaymentDeeplink(
       ? `Split Bill Payment - bill_${billId}`
       : "Split Bill Payment";
 
-    return `ton://transfer/${creatorWalletAddress}?amount=${amountInNanoTON.toString()}&text=${encodeURIComponent(
+    return createTonPaymentDeeplink(
+      creatorWalletAddress,
+      amountInNanoTON.toString(),
       comment
-    )}`;
+    );
   } else if (provider === "USDT") {
     const baseUrls = {
       USDT: process.env.USDT_PROVIDER_URL || "https://mock-usdt-provider.com",

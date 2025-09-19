@@ -3,6 +3,7 @@ import { tonBlockchainService } from "./tonBlockchainService";
 
 export class PaymentMonitorService {
   private isRunning = false;
+  private cronTask: cron.ScheduledTask | null = null;
 
   /**
    * Запуск мониторинга платежей
@@ -16,7 +17,7 @@ export class PaymentMonitorService {
     console.log("Starting payment monitoring service...");
 
     // Проверяем каждые 30 секунд
-    cron.schedule("*/30 * * * * *", async () => {
+    this.cronTask = cron.schedule("*/30 * * * * *", async () => {
       try {
         await tonBlockchainService.checkAllPendingPayments();
       } catch (error) {
@@ -47,7 +48,10 @@ export class PaymentMonitorService {
       return;
     }
 
-    cron.destroy();
+    if (this.cronTask) {
+      this.cronTask.stop();
+      this.cronTask = null;
+    }
     this.isRunning = false;
     console.log("Payment monitoring service stopped");
   }

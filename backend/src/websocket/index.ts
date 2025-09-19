@@ -22,14 +22,14 @@ export async function setupWebSocket(fastify: FastifyInstance) {
   fastify.websocketServer = { clients };
 
   fastify.register(async function (fastify) {
-    fastify.get("/ws/:billId", { websocket: true }, (connection, req) => {
-      const billId = (req.params as any).billId;
+    fastify.get("/ws/:billId", { websocket: true } as any, (connection, req) => {
+      const billId = (req as any).params.billId;
 
       // Добавляем клиента в комнату
       const client: WebSocketClient = {
         send: (data: string) => {
           try {
-            connection.socket.send(data);
+            (connection.socket as any).send(data);
           } catch (error) {
             console.error("Error sending WebSocket message:", error);
           }

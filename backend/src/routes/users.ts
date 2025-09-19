@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../config/database";
 import { authMiddleware } from "../middleware/auth";
+import { isValidTonAddress } from "../utils/tonAddress";
 
 export async function usersRoutes(fastify: FastifyInstance) {
   // Эндпоинт для инициализации пользователя (создание если не существует)
@@ -253,12 +254,4 @@ export async function usersRoutes(fastify: FastifyInstance) {
       }
     }
   );
-}
-
-// Вспомогательная функция для валидации адреса TON
-function isValidTonAddress(address: string): boolean {
-  // Базовая проверка формата адреса TON
-  // TON адреса обычно начинаются с UQ, EQ, или имеют длину 48 символов
-  const tonAddressRegex = /^(UQ|EQ)[A-Za-z0-9_-]{46}$/;
-  return tonAddressRegex.test(address) || address.length === 48;
 }

@@ -130,10 +130,17 @@ export async function billsRoutes(fastify: FastifyInstance) {
         const result = await prisma.$transaction(async tx => {
           // Обновляем кошелек пользователя если он предоставлен
           if (creatorWalletAddress) {
+            console.log(
+              "🔗 Updating creator wallet address:",
+              creatorWalletAddress
+            );
             await tx.user.update({
               where: { id: creatorId },
               data: { tonWalletAddress: creatorWalletAddress },
             });
+            console.log("✅ Creator wallet address updated successfully");
+          } else {
+            console.log("⚠️ No creator wallet address provided");
           }
 
           const bill = await tx.bill.create({
@@ -900,7 +907,7 @@ export async function billsRoutes(fastify: FastifyInstance) {
         }
 
         // Создаем нового участника
-        const participant = await prisma.participants.create({
+        const participant = await prisma.billParticipant.create({
           data: {
             billId: id,
             userId: userId,

@@ -99,7 +99,7 @@ export async function sendTelegramMessage(
       console.error('Telegram API error:', data);
       return { 
         success: false, 
-        error: data.description || 'Unknown Telegram API error' 
+        error: (data as any).description || 'Unknown Telegram API error' 
       };
     }
 

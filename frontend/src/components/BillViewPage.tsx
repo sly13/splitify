@@ -283,15 +283,30 @@ const BillViewPage: React.FC = () => {
     }
   };
 
-  const handleWalletConnected = (address: string) => {
+  const handleWalletConnected = async (address: string) => {
     console.log("Wallet connected:", address);
-    showSuccess("Кошелек подключен! Теперь вы можете совершить платеж.");
-    // Закрываем модальное окно
-    setShowWalletModal(false);
-    // После подключения кошелька можно автоматически попробовать оплату снова
-    setTimeout(() => {
-      handlePayShare();
-    }, 1000);
+
+    try {
+      // Если текущий пользователь является создателем счета, обновляем его адрес кошелька
+      if (currentBill.creator.id === authUser?.id) {
+        console.log("🔗 Updating creator wallet address:", address);
+        await userApi.updateProfile({
+          tonWalletAddress: address,
+        });
+        console.log("✅ Creator wallet address updated");
+      }
+
+      showSuccess("Кошелек подключен! Теперь вы можете совершить платеж.");
+      // Закрываем модальное окно
+      setShowWalletModal(false);
+      // После подключения кошелька можно автоматически попробовать оплату снова
+      setTimeout(() => {
+        handlePayShare();
+      }, 1000);
+    } catch (error) {
+      console.error("Error updating wallet address:", error);
+      showError("Ошибка при обновлении адреса кошелька");
+    }
   };
 
   const handleShare = () => {

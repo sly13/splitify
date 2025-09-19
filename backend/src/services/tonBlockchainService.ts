@@ -132,7 +132,7 @@ export class TonBlockchainService {
         const transaction = matchingTransactions[0]; // Берем последнюю
 
         // Проверяем сумму
-        const expectedAmount = payment.amount;
+        const expectedAmount = payment.amount.toNumber();
         const receivedAmount = parseFloat(transaction.value) / 1000000000; // Конвертируем из nanoTON
 
         if (Math.abs(receivedAmount - expectedAmount) < 0.001) {
@@ -143,7 +143,7 @@ export class TonBlockchainService {
             data: {
               status: "confirmed",
               // transactionHash: transaction.hash, // Поле пока не добавлено в схему
-              completedAt: new Date(transaction.timestamp * 1000),
+              // completedAt: new Date(transaction.timestamp * 1000), // Поле пока не добавлено в схему
             },
           });
 
