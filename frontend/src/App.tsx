@@ -5,6 +5,7 @@ import {
   Route,
   useNavigate,
 } from "react-router-dom";
+import { TonConnectUIProvider } from "@tonconnect/ui-react";
 import { useTelegram } from "./hooks/useTelegram";
 import { useAppStore } from "./stores/appStore";
 import { useTheme } from "./hooks/useTheme";
@@ -112,10 +113,16 @@ const AppContent: FC = () => {
 
 // Главный компонент приложения
 const App: FC = () => {
+  const manifestUrl = import.meta.env.DEV
+    ? "http://localhost:4040/tonconnect-manifest.json"
+    : "https://splitify.vadimsemenko.ru/tonconnect-manifest.json";
+
   return (
-    <AuthProvider>
-      <AuthInitializer />
-    </AuthProvider>
+    <TonConnectUIProvider manifestUrl={manifestUrl}>
+      <AuthProvider>
+        <AuthInitializer />
+      </AuthProvider>
+    </TonConnectUIProvider>
   );
 };
 
