@@ -484,41 +484,10 @@ export const ParticipantAdder: React.FC<ParticipantAdderProps> = ({
         )}
       </div>
 
-      {/* Информация о плательщике и долгах */}
-      {participants.some(p => p.isPayer) && (
-        <div className="payer-info-section">
-          <h4>💳 Информация о платежах</h4>
-          {participants.map(participant => {
-            if (participant.isPayer) {
-              const othersDebt = participants
-                .filter(p => !p.isPayer)
-                .reduce((sum, p) => sum + parseFloat(p.shareAmount || "0"), 0);
-
-              return (
-                <div key={participant.id} className="payer-info">
-                  <div className="payer-details">
-                    <strong>{participant.name}</strong> заплатил за весь счёт
-                  </div>
-                  <div className="debt-info">
-                    Остальные участники должны ему:{" "}
-                    <strong>
-                      {othersDebt.toFixed(2)} {currency}
-                    </strong>
-                  </div>
-                </div>
-              );
-            }
-            return null;
-          })}
-        </div>
-      )}
-
       {/* Ошибка валидации плательщика */}
       {payerError && (
         <div className="payer-error-section">
-          <div className="error-message">
-            ⚠️ {payerError}
-          </div>
+          <div className="error-message">⚠️ {payerError}</div>
           <div className="payer-hint">
             Отметьте галочкой "💳 Платил" у того участника, кто заплатил за счёт
           </div>

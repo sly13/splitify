@@ -47,8 +47,8 @@ export interface BillDetailsResponse {
   updatedAt: string;
   creator: {
     id: string;
-    firstName: string;
-    username?: string;
+    firstName: string | null;
+    username?: string | null;
   };
   participants: {
     id: string;
@@ -56,11 +56,12 @@ export interface BillDetailsResponse {
     shareAmount: string;
     paymentStatus: string;
     isPayer: boolean;
+    telegramUsername?: string | null;
     user?: {
       id: string;
-      firstName: string;
-      username?: string;
-    };
+      firstName: string | null;
+      username?: string | null;
+    } | null;
   }[];
   summary: {
     totalPaid: string;

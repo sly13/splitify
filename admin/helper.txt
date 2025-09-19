@@ -1,0 +1,12 @@
+# Зайти в контейнер backend
+docker exec -it crypto_split_bill_backend bash
+
+# Применить миграции
+npm run db:migrate
+
+# Или альтернативно
+npx prisma migrate deploy
+
+npx prisma migrate reset --force
+npx prisma db push
+npm run create:admin

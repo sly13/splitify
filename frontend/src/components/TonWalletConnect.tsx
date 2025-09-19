@@ -106,8 +106,6 @@ const TonWalletContent: React.FC<TonWalletConnectProps> = ({
 
   return (
     <div className="ton-wallet-connect">
-      <div className="wallet-header"></div>
-
       {error && (
         <div className="error-message">
           <span>⚠️ {error}</span>
@@ -137,21 +135,10 @@ const TonWalletContent: React.FC<TonWalletConnectProps> = ({
           </div>
         ) : (
           <div className="wallet-disconnected">
-            <div className="wallet-icon-large">🚀</div>
-            <p>Подключите TON кошелек для быстрых платежей</p>
+            <p>Подключите TON кошелек</p>
             <TonConnectButton />
           </div>
         )}
-      </div>
-
-      <div className="wallet-benefits">
-        <h4>Почему стоит подключить TON кошелек:</h4>
-        <ul>
-          <li>Мгновенные платежи без комиссий</li>
-          <li>Максимальная безопасность блокчейна</li>
-          <li>Интеграция с Telegram</li>
-          <li>Поддержка всех популярных кошельков</li>
-        </ul>
       </div>
     </div>
   );
@@ -187,7 +174,9 @@ const TonWalletConnect: React.FC<TonWalletConnectProps> = props => {
         ],
       }}
       actionsConfiguration={{
-        twaReturnUrl: "https://t.me/your_bot",
+        twaReturnUrl: `https://t.me/${
+          import.meta.env.VITE_TELEGRAM_BOT_NAME || "splitify_tg_bot"
+        }`,
       }}
     >
       <TonWalletContent {...props} />

@@ -88,6 +88,23 @@ const CreateBillPage: React.FC = () => {
     };
   }, [webApp, navigate]);
 
+  // Функция для обновления адреса кошелька из API
+  const updateWalletAddressFromAPI = useCallback(async () => {
+    try {
+      const response = await userApi.getMe();
+      if (response.data?.success && response.data?.data?.tonWalletAddress) {
+        const walletAddress = response.data.data.tonWalletAddress;
+        setUserWalletAddress(walletAddress);
+        setFormData(prev => ({
+          ...prev,
+          creatorWalletAddress: walletAddress,
+        }));
+      }
+    } catch (error) {
+      console.log("Не удалось получить адрес кошелька из API:", error);
+    }
+  }, []);
+
   // Автоматически добавляем себя при загрузке пользователя
   useEffect(() => {
     const addCurrentUser = async () => {
@@ -305,9 +322,11 @@ const CreateBillPage: React.FC = () => {
     setShowWalletConnect(false);
   }, []);
 
-  const handleConnectWalletClick = useCallback(() => {
+  const handleConnectWalletClick = useCallback(async () => {
+    // Сначала обновляем адрес кошелька из API
+    await updateWalletAddressFromAPI();
     setShowWalletConnect(true);
-  }, []);
+  }, [updateWalletAddressFromAPI]);
 
   // Функция для валидации всех полей
   const validateForm = (data: CreateBillData) => {

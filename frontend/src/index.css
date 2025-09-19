@@ -852,25 +852,26 @@ select:disabled {
 }
 
 .participant-item.self-participant {
+  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
+  color: var(--tg-theme-text-color, #000000);
+  border: 2px solid var(--tg-theme-button-color, #2481cc);
+}
+
+.participant-item.self-participant .participant-details h4 {
+  color: var(--tg-theme-text-color, #000000);
+}
+
+.participant-item.self-participant .participant-details p {
+  color: var(--tg-theme-hint-color, #999999);
+}
+
+.participant-item.self-participant .participant-avatar {
   background: var(--tg-theme-button-color, #2481cc);
   color: white;
 }
 
-.participant-item.self-participant .participant-details h4 {
-  color: white;
-}
-
-.participant-item.self-participant .participant-details p {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.participant-item.self-participant .participant-avatar {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-}
-
 .participant-item.self-participant .currency-label {
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--tg-theme-hint-color, #999999);
 }
 
 .self-badge {
@@ -980,59 +981,119 @@ select:disabled {
 }
 
 .bill-summary {
-  background: var(--tg-theme-bg-color, #ffffff);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(36, 129, 204, 0.1);
+  background: linear-gradient(
+    135deg,
+    var(--tg-theme-bg-color, #ffffff) 0%,
+    rgba(36, 129, 204, 0.02) 100%
+  );
+  border-radius: 20px;
+  padding: 24px;
+  border: 1px solid rgba(36, 129, 204, 0.15);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  position: relative;
+  overflow: hidden;
+}
+
+.bill-summary::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+  border-radius: 20px 20px 0 0;
 }
 
 .total-amount {
   display: flex;
   align-items: baseline;
-  gap: 8px;
-  margin-bottom: 16px;
+  gap: 12px;
+  margin-bottom: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .total-amount .amount {
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--tg-theme-text-color, #000000);
+  font-size: 36px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #1e40af, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .total-amount .currency {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: var(--tg-theme-hint-color, #999999);
+  color: var(--tg-theme-hint-color, #6b7280);
+  background: rgba(36, 129, 204, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(36, 129, 204, 0.2);
 }
 
 .progress-section {
-  margin-top: 16px;
+  margin-top: 20px;
+  position: relative;
+  z-index: 1;
 }
 
 .progress-bar {
   width: 100%;
-  height: 8px;
-  background: var(--tg-theme-secondary-bg-color, #f8f9fa);
-  border-radius: 4px;
+  height: 12px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .progress-fill {
   height: 100%;
+  background: linear-gradient(90deg, #10b981, #3b82f6, #8b5cf6);
+  border-radius: 8px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  position: relative;
+}
+
+.progress-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   background: linear-gradient(
     90deg,
-    var(--tg-theme-button-color, #2481cc) 0%,
-    #1e6bb8 100%
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
   );
-  border-radius: 4px;
-  transition: width 0.3s ease;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .progress-text {
-  font-size: 14px;
-  color: var(--tg-theme-hint-color, #999999);
+  font-size: 15px;
+  color: var(--tg-theme-hint-color, #6b7280);
   text-align: center;
+  font-weight: 500;
+  background: rgba(0, 0, 0, 0.02);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 /* Стили для BottomNavigation */
@@ -1248,6 +1309,7 @@ select:disabled {
   display: flex;
   align-items: center;
   margin-left: 8px;
+  min-width: 24px; /* Фиксированная ширина для выравнивания цен */
 }
 
 .share-participant-button {
@@ -2122,43 +2184,43 @@ select:disabled {
 
   /* Стили для себя как участника на мобильных */
   .participant-item.self-participant .participant-amount-section {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
+    background: var(--tg-theme-bg-color, #ffffff);
+    border-color: var(--tg-theme-hint-color, #e0e0e0);
   }
 
   .participant-item.self-participant .amount-input {
-    color: white;
+    color: var(--tg-theme-text-color, #000000);
   }
 
   .participant-item.self-participant .amount-input::placeholder {
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--tg-theme-hint-color, #999999);
   }
 
   .participant-item.self-participant .currency-label {
-    color: white;
+    color: var(--tg-theme-hint-color, #999999);
   }
 
   .participant-item.self-participant .payer-checkbox .checkbox-label {
-    color: white;
+    color: var(--tg-theme-text-color, #000000);
   }
 
   .participant-item.self-participant .payer-checkbox input[type="checkbox"] {
-    accent-color: white;
-    border-color: rgba(255, 255, 255, 0.5);
-    background: rgba(255, 255, 255, 0.1);
+    accent-color: var(--tg-theme-button-color, #2481cc);
+    border-color: var(--tg-theme-hint-color, #e0e0e0);
+    background: var(--tg-theme-bg-color, #ffffff);
   }
 
   .participant-item.self-participant
     .payer-checkbox
     input[type="checkbox"]:checked {
-    background: white;
-    border-color: white;
+    background: var(--tg-theme-button-color, #2481cc);
+    border-color: var(--tg-theme-button-color, #2481cc);
   }
 
   .participant-item.self-participant
     .payer-checkbox
     input[type="checkbox"]:checked::after {
-    color: var(--tg-theme-button-color, #2481cc);
+    color: white;
   }
 
   /* Улучшенные стили для формы добавления участника */
@@ -3026,6 +3088,8 @@ select:disabled {
   flex-direction: column;
   align-items: flex-end;
   gap: 4px;
+  min-width: 120px;
+  text-align: right;
 }
 
 .status-badge {

@@ -1,4 +1,4 @@
-import { type FC, useEffect } from "react";
+import { type FC, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -10,6 +10,7 @@ import { useTelegram } from "./hooks/useTelegram";
 import { useAppStore } from "./stores/appStore";
 import { useTheme } from "./hooks/useTheme";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { userApi } from "./services/api";
 import Layout from "./components/Layout";
 import OnboardingPage from "./components/OnboardingPage";
 import MainApp from "./components/MainApp";
@@ -24,17 +25,52 @@ const StartAppHandler: FC = () => {
   const navigate = useNavigate();
   const { webApp } = useTelegram();
 
+  const handleStartApp = useCallback(
+    async (billId: string) => {
+      try {
+        console.log("🔗 Processing startapp for bill:", billId);
+
+        // Сначала создаем/обновляем пользователя
+        await userApi.getMe();
+
+        // Затем привязываем пользователя к счету
+        const response = await fetch(`/api/bills/${billId}/join`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (response.ok) {
+          console.log("✅ Successfully joined bill:", billId);
+          // Перенаправляем на страницу счета
+          navigate(`/bill/${billId}`);
+        } else {
+          console.error("❌ Failed to join bill:", response.status);
+          // Все равно перенаправляем на страницу счета
+          navigate(`/bill/${billId}`);
+        }
+      } catch (error) {
+        console.error("❌ Error processing startapp:", error);
+        // В случае ошибки все равно перенаправляем на страницу счета
+        navigate(`/bill/${billId}`);
+      }
+    },
+    [navigate]
+  );
+
   useEffect(() => {
     // Проверяем параметр startapp из Telegram WebApp
-    const startParam = (webApp?.initDataUnsafe as any)?.start_param;
+    const startParam = (webApp?.initDataUnsafe as { start_param?: string })
+      ?.start_param;
     if (startParam) {
-      const billId = startParam;
+      const billId = startParam.replace("bill_", ""); // Убираем префикс 'bill_'
       console.log("StartApp parameter found:", billId);
 
-      // Перенаправляем на страницу счета
-      navigate(`/bill/${billId}`);
+      // Создаем пользователя и привязываем к счету
+      handleStartApp(billId);
     }
-  }, [webApp, navigate]);
+  }, [webApp, navigate, handleStartApp]);
 
   return null;
 };

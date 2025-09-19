@@ -67,6 +67,7 @@ export async function billsRoutes(fastify: FastifyInstance) {
             name: p.name,
             shareAmount: p.shareAmount.toString(),
             paymentStatus: p.paymentStatus,
+            telegramUsername: p.telegramUsername,
             user: p.user,
           })),
           isCreator: bill.creatorId === userId,
@@ -384,6 +385,7 @@ export async function billsRoutes(fastify: FastifyInstance) {
             shareAmount: p.shareAmount.toString(),
             paymentStatus: p.paymentStatus,
             isPayer: p.isPayer,
+            telegramUsername: p.telegramUsername,
             user: p.user,
           })),
           summary: {
@@ -837,6 +839,102 @@ export async function billsRoutes(fastify: FastifyInstance) {
         return reply
           .status(500)
           .send({ error: "Failed to update payer status" });
+      }
+    }
+  );
+
+  // Присоединение к счету по ссылке
+  fastify.post<{ Params: { id: string } }>(
+    "/api/bills/:id/join",
+    {
+      preHandler: [fastify.authMiddleware],
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const userId = request.user!.id;
+
+        // Проверяем, существует ли счет
+        const bill = await prisma.bill.findUnique({
+          where: { id },
+          include: {
+            participants: {
+              include: {
+                user: true,
+              },
+            },
+            creator: true,
+          },
+        });
+
+        if (!bill) {
+          return reply.status(404).send({ error: "Bill not found" });
+        }
+
+        // Проверяем, не является ли пользователь создателем
+        if (bill.creatorId === userId) {
+          return reply
+            .status(400)
+            .send({ error: "Creator cannot join their own bill" });
+        }
+
+        // Проверяем, не является ли пользователь уже участником
+        const existingParticipant = bill.participants.find(
+          p => p.userId === userId
+        );
+        if (existingParticipant) {
+          return reply.send({
+            success: true,
+            message: "Already a participant",
+            participant: existingParticipant,
+          });
+        }
+
+        // Получаем информацию о пользователе
+        const user = await prisma.user.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          return reply.status(404).send({ error: "User not found" });
+        }
+
+        // Создаем нового участника
+        const participant = await prisma.participants.create({
+          data: {
+            billId: id,
+            userId: userId,
+            name: user.firstName || user.username || "Unknown",
+            telegramUsername: user.username,
+            telegramUserId: user.id.toString(),
+            shareAmount: 0, // Будет рассчитано позже
+            paymentStatus: "pending",
+            isPayer: false,
+          },
+          include: {
+            user: true,
+          },
+        });
+
+        console.log(`✅ User ${user.firstName} joined bill ${bill.title}`);
+
+        return reply.send({
+          success: true,
+          message: "Successfully joined bill",
+          participant: {
+            id: participant.id,
+            name: participant.name,
+            telegramUsername: participant.telegramUsername,
+            telegramUserId: participant.telegramUserId,
+            shareAmount: participant.shareAmount.toString(),
+            paymentStatus: participant.paymentStatus,
+            isPayer: participant.isPayer,
+            user: participant.user,
+          },
+        });
+      } catch (error) {
+        console.error("Error joining bill:", error);
+        return reply.status(500).send({ error: "Failed to join bill" });
       }
     }
   );
