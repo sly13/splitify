@@ -32,6 +32,20 @@ fastify.register(cors, {
     "https://splitify.vadimsemenko.ru",
   ],
   credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "x-telegram-init-data",
+    "x-telegram-hash",
+    "x-user-id",
+    "x-username",
+    "x-first-name",
+    "x-test-mode",
+    "X-Telegram-Init-Data",
+  ],
+  exposedHeaders: ["Content-Type", "Authorization"],
 });
 
 // Настраиваем WebSocket
@@ -50,6 +64,11 @@ fastify.register(adminFriendsRoutes);
 // Базовый маршрут для проверки здоровья
 fastify.get("/health", async (request, reply) => {
   return { status: "ok", timestamp: new Date().toISOString() };
+});
+
+// Обработка OPTIONS запросов для CORS
+fastify.options("/*", async (request, reply) => {
+  reply.status(200).send();
 });
 
 // Обработка ошибок

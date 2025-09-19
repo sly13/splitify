@@ -47,9 +47,35 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     if (isProduction && !hasTelegramWebApp) {
       console.log(
-        "🚀 Production mode without Telegram WebApp - skipping authentication"
+        "🚀 Production mode without Telegram WebApp - forcing authentication"
       );
-      setIsAuthenticated(true); // Продолжаем работу без аутентификации
+      console.log("🔍 Debug info:", {
+        windowTelegram: window.Telegram,
+        webApp: window.Telegram?.WebApp,
+        initData: window.Telegram?.WebApp?.initData,
+        initDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe,
+      });
+      
+      // Принудительно делаем аутентификацию даже без Telegram WebApp
+      setIsLoading(true);
+      try {
+        console.log("🔐 Forcing authentication without Telegram WebApp...");
+        const response = await userApi.getMe();
+        
+        if (response.data?.success) {
+          console.log("✅ Authentication successful:", response.data.user);
+          setUser(response.data.user);
+          setIsAuthenticated(true);
+        } else {
+          console.log("⚠️ Authentication failed, continuing without auth");
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.log("⚠️ Authentication error, continuing without auth:", error);
+        setIsAuthenticated(true);
+      } finally {
+        setIsLoading(false);
+      }
       return;
     }
 
