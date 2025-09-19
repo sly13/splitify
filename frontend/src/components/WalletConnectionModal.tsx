@@ -1,5 +1,9 @@
 import React, { useEffect } from "react";
-import { TonConnectUIProvider, TonConnectButton, useTonConnectUI } from "@tonconnect/ui-react";
+import {
+  TonConnectUIProvider,
+  TonConnectButton,
+  useTonConnectUI,
+} from "@tonconnect/ui-react";
 import { useTelegram } from "../hooks/useTelegram";
 
 interface WalletConnectionModalProps {
@@ -33,34 +37,15 @@ const WalletConnectionContent: React.FC<{
   return (
     <div className="wallet-connection-modal">
       <div className="modal-header">
-        <h3>Подключение кошелька TON</h3>
+        <h3>Подключить кошелек</h3>
         <button className="close-button" onClick={onClose}>
           ✕
         </button>
       </div>
 
       <div className="modal-body">
-        <div className="wallet-info">
-          <div className="wallet-icon">⚡</div>
-          <h4>Для оплаты необходимо подключить кошелек TON</h4>
-          <p>
-            Подключите ваш кошелек TON (Tonkeeper, TON Wallet и др.) для
-            совершения платежей в блокчейне TON.
-          </p>
-        </div>
-
         <div className="wallet-connect-section">
           <TonConnectButton />
-        </div>
-
-        <div className="wallet-help">
-          <h5>Как подключить кошелек:</h5>
-          <ol>
-            <li>Нажмите кнопку "Connect Wallet"</li>
-            <li>Выберите ваш кошелек TON</li>
-            <li>Подтвердите подключение в кошельке</li>
-            <li>Адрес кошелька автоматически сохранится</li>
-          </ol>
         </div>
       </div>
     </div>

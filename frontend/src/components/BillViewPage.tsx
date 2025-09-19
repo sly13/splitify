@@ -28,8 +28,7 @@ const BillViewPage: React.FC = () => {
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Проверяем подключение кошелька
-  const { isConnected: isWalletConnected, walletAddress } =
-    useWalletConnection();
+  const { isConnected: isWalletConnected } = useWalletConnection();
 
   // Настройка Telegram BackButton
   useEffect(() => {
@@ -148,7 +147,7 @@ const BillViewPage: React.FC = () => {
 
     hapticFeedback.impact("medium");
 
-    // Проверяем подключение кошелька
+    // Если кошелек не подключен, сразу открываем модальное окно подключения
     if (!isWalletConnected) {
       setShowWalletModal(true);
       return;
@@ -551,36 +550,6 @@ const BillViewPage: React.FC = () => {
                   </div>
                 </div>
               )}
-
-              {/* Статус подключения кошелька */}
-              <div className="wallet-status-section">
-                {isWalletConnected ? (
-                  <div className="wallet-status connected">
-                    <div className="status-icon">✅</div>
-                    <div className="status-text">
-                      <div className="status-label">Кошелек подключен</div>
-                      <div className="wallet-address-short">
-                        {walletAddress
-                          ? `${walletAddress.slice(
-                              0,
-                              6
-                            )}...${walletAddress.slice(-4)}`
-                          : "TON кошелек"}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="wallet-status disconnected">
-                    <div className="status-icon">⚠️</div>
-                    <div className="status-text">
-                      <div className="status-label">Кошелек не подключен</div>
-                      <div className="status-description">
-                        Для оплаты необходимо подключить кошелек TON
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
 
               <button className="pay-button" onClick={handlePayShare}>
                 💳 Оплатить долю
