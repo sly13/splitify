@@ -36,44 +36,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const hasTelegramWebApp = !!window.Telegram?.WebApp;
     const isProduction = !import.meta.env.DEV;
 
+    // Проверяем наличие Telegram WebApp
+    console.log("🔍 Telegram WebApp check:", {
+      hasTelegramWebApp,
+      isProduction,
+      telegramWebApp: window.Telegram?.WebApp,
+      initData: window.Telegram?.WebApp?.initData,
+      initDataUnsafe: window.Telegram?.WebApp?.initDataUnsafe,
+    });
+
     if (isProduction && !hasTelegramWebApp) {
       console.log(
-        "🚀 Production mode without Telegram WebApp - checking URL params for user data"
+        "🚀 Production mode without Telegram WebApp - skipping authentication"
       );
-
-      // Получаем данные пользователя из URL параметров
-      const urlParams = new URLSearchParams(window.location.search);
-      const userId = urlParams.get("user_id");
-      const username = urlParams.get("username");
-      const firstName = urlParams.get("first_name");
-
-      if (userId) {
-        console.log("🚀 Found user data in URL:", {
-          userId,
-          username,
-          firstName,
-        });
-
-        // Сохраняем данные в localStorage
-        localStorage.setItem("user_id", userId);
-        if (username) localStorage.setItem("username", username);
-        if (firstName) localStorage.setItem("first_name", firstName);
-
-        // Устанавливаем пользователя
-        setUser({
-          id: userId,
-          firstName: firstName || "Unknown User",
-          username: username || "unknown",
-          telegramUserId: userId,
-        });
-
-        setIsAuthenticated(true);
-        return;
-      }
-
-      // Если данных нет, показываем ошибку
-      console.error("❌ No user data found in URL parameters");
-      setIsAuthenticated(false);
+      setIsAuthenticated(true); // Продолжаем работу без аутентификации
       return;
     }
 
