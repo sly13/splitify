@@ -525,22 +525,95 @@ function generatePaymentDeeplink(
       comment
     );
   } else if (provider === "USDT") {
-    const baseUrls = {
-      USDT: process.env.USDT_PROVIDER_URL || "https://mock-usdt-provider.com",
-    };
-    const url = baseUrls[provider as keyof typeof baseUrls];
-    return `${url}/pay?amount=${amount.toString()}&currency=${provider}`;
+    // USDT в TON сети тоже использует TON кошелек
+    if (!creatorWalletAddress) {
+      throw new Error("Creator wallet address is required for USDT payments");
+    }
+
+    const amountInNanoTON = amount.mul(1000000000); // Конвертируем в nanoTON
+
+    // Включаем bill ID в комментарий для отслеживания
+    const comment = billId
+      ? `Split Bill Payment (USDT) - bill_${billId}`
+      : "Split Bill Payment (USDT)";
+
+    return createTonPaymentDeeplink(
+      creatorWalletAddress,
+      amountInNanoTON.toString(),
+      comment
+    );
   }
 
-  // Fallback для других провайдеров
-  const baseUrls = {
-    TON: process.env.TON_PROVIDER_URL || "https://mock-ton-provider.com",
-    USDT: process.env.USDT_PROVIDER_URL || "https://mock-usdt-provider.com",
-  };
-  const url = baseUrls[provider as keyof typeof baseUrls];
-  return `${url}/pay?amount=${amount.toString()}&currency=${provider}`;
+  // Fallback для неизвестных провайдеров
+  throw new Error(`Unsupported payment provider: ${provider}`);
 }
 
 function generateExternalId(): string {
   return `ext_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
+
+// Очистка конкретного платежа (для отладки)
+fastify.delete("/api/payments/:paymentId", async (request, reply) => {
+  try {
+    const { paymentId } = request.params as { paymentId: string };
+
+    console.log(`🧹 Очищаем платеж ${paymentId}...`);
+
+    const payment = await prisma.payment.findUnique({
+      where: { id: paymentId },
+      include: {
+        participant: true,
+      },
+    });
+
+    if (!payment) {
+      console.log(`❌ Платеж ${paymentId} не найден`);
+      return reply.status(404).send({
+        success: false,
+        error: "Платеж не найден",
+      });
+    }
+
+    console.log(`📋 Найден платеж:`, {
+      id: payment.id,
+      status: payment.status,
+      amount: payment.amount.toString(),
+      participant: payment.participant.name,
+      createdAt: payment.createdAt,
+    });
+
+    // Обновляем статус участника
+    await prisma.billParticipant.update({
+      where: { id: payment.participantId },
+      data: {
+        paymentStatus: "pending",
+        paymentId: null,
+      },
+    });
+
+    // Удаляем платеж
+    await prisma.payment.delete({
+      where: { id: paymentId },
+    });
+
+    console.log(`✅ Платеж ${paymentId} успешно удален`);
+
+    return reply.send({
+      success: true,
+      message: `Платеж ${paymentId} успешно удален`,
+      deletedPayment: {
+        id: payment.id,
+        status: payment.status,
+        participant: payment.participant.name,
+        amount: payment.amount.toString(),
+      },
+    });
+  } catch (error) {
+    console.error("❌ Ошибка при удалении платежа:", error);
+    return reply.status(500).send({
+      success: false,
+      error: "Ошибка при удалении платежа",
+      details: error instanceof Error ? error.message : "Неизвестная ошибка",
+    });
+  }
+});

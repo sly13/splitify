@@ -10,6 +10,7 @@ import { analyticsRoutes } from "./routes/analytics";
 import { adminAuthRoutes } from "./routes/admin/auth";
 import { adminDataRoutes } from "./routes/admin/data";
 import { adminFriendsRoutes } from "./routes/admin/friends";
+import { cleanupRoutes } from "./routes/admin/cleanup";
 import { setupWebSocket } from "./websocket";
 import { paymentMonitorService } from "./services/paymentMonitor";
 
@@ -80,6 +81,7 @@ fastify.register(analyticsRoutes);
 fastify.register(adminAuthRoutes);
 fastify.register(adminDataRoutes);
 fastify.register(adminFriendsRoutes);
+fastify.register(cleanupRoutes);
 
 // Базовый маршрут для проверки здоровья
 fastify.get("/health", async (request, reply) => {
