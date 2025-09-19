@@ -28,7 +28,8 @@ const BillViewPage: React.FC = () => {
   const [showWalletModal, setShowWalletModal] = useState(false);
 
   // Проверяем подключение кошелька
-  const { isConnected: isWalletConnected } = useWalletConnection();
+  const { isConnected: isWalletConnected, walletAddress } =
+    useWalletConnection();
 
   // Настройка Telegram BackButton
   useEffect(() => {
@@ -283,6 +284,8 @@ const BillViewPage: React.FC = () => {
   const handleWalletConnected = (address: string) => {
     console.log("Wallet connected:", address);
     showSuccess("Кошелек подключен! Теперь вы можете совершить платеж.");
+    // Закрываем модальное окно
+    setShowWalletModal(false);
     // После подключения кошелька можно автоматически попробовать оплату снова
     setTimeout(() => {
       handlePayShare();
@@ -564,6 +567,21 @@ const BillViewPage: React.FC = () => {
               <button className="pay-button" onClick={handlePayShare}>
                 💳 Оплатить долю
               </button>
+
+              {/* Информация о подключенном кошельке */}
+              {isWalletConnected && walletAddress && (
+                <div className="connected-wallet-info">
+                  <div className="wallet-status-connected">
+                    <div className="status-icon">✅</div>
+                    <div className="status-text">
+                      <div className="status-label">Кошелек подключен</div>
+                      <div className="wallet-address-display">
+                        {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
